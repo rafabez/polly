@@ -1,0 +1,409 @@
+/* Old School Terminal Style */
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+:root {
+    --green: #00ff00;
+    --dark-green: #00cc00;
+    --black: #000000;
+    --dark-gray: #0a0a0a;
+    --light-gray: #1a1a1a;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'VT323', monospace;
+    background: var(--black);
+    color: var(--green);
+    line-height: 1.6;
+    font-size: 20px;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Scanlines effect */
+.scanlines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15),
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    z-index: 9999;
+}
+
+/* Header */
+header {
+    padding: 30px 20px;
+    border-bottom: 2px solid var(--green);
+    animation: flicker 0.15s infinite;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.98; }
+}
+
+.logo {
+    width: 150px;
+    height: 150px;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+}
+
+.header-text {
+    text-align: left;
+}
+
+h1 {
+    font-size: 96px;
+    letter-spacing: 12px;
+    margin-bottom: 0;
+    line-height: 1;
+}
+
+.tagline {
+    font-size: 28px;
+    color: var(--dark-green);
+}
+
+/* Language Toggle */
+.lang-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--green);
+    color: var(--black);
+    border: 2px solid var(--green);
+    padding: 10px 20px;
+    font-family: 'VT323', monospace;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10000;
+    transition: all 0.3s;
+}
+
+.lang-toggle:hover {
+    background: var(--black);
+    color: var(--green);
+}
+
+/* Hide inactive language */
+body:not(.lang-pt) .lang-pt {
+    display: none;
+}
+
+body.lang-pt .lang-en {
+    display: none;
+}
+
+/* Intro */
+.intro {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.intro-card {
+    background: var(--dark-gray);
+    border: 2px solid var(--green);
+    padding: 25px;
+    text-align: center;
+}
+
+.intro-card p {
+    font-size: 22px;
+    line-height: 1.5;
+    color: var(--dark-green);
+    margin: 0;
+}
+
+/* Main Content */
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+section {
+    margin-bottom: 60px;
+    border: 2px solid var(--green);
+    padding: 30px;
+    background: var(--dark-gray);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+}
+
+h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    color: var(--green);
+}
+
+/* Terminal Window */
+.terminal-window {
+    background: var(--black);
+    border: 3px solid var(--green);
+}
+
+.terminal-header {
+    background: var(--green);
+    color: var(--black);
+    padding: 10px 20px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.terminal-body {
+    padding: 20px;
+    min-height: 300px;
+}
+
+.terminal-body pre {
+    margin: 0;
+    font-size: 22px;
+}
+
+.terminal-body code {
+    color: var(--green);
+}
+
+.output {
+    color: var(--dark-green);
+}
+
+.command {
+    color: #00ffff;
+}
+
+.prompt {
+    color: #ffff00;
+}
+
+/* Features */
+.features ul {
+    list-style: none;
+    font-size: 24px;
+}
+
+.features li {
+    margin-bottom: 15px;
+    padding-left: 30px;
+}
+
+.bullet {
+    color: var(--green);
+    margin-right: 10px;
+    font-size: 28px;
+}
+
+/* Code Blocks */
+.code-block {
+    margin-bottom: 30px;
+    border: 2px solid var(--green);
+    background: var(--black);
+}
+
+.code-header {
+    background: var(--green);
+    color: var(--black);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 22px;
+}
+
+.copy-btn {
+    background: var(--black);
+    color: var(--green);
+    border: 2px solid var(--black);
+    padding: 5px 15px;
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.copy-btn:hover {
+    background: var(--dark-gray);
+    border-color: var(--green);
+}
+
+.copy-btn:active {
+    transform: scale(0.95);
+}
+
+.code-block pre {
+    padding: 20px;
+    margin: 0;
+    overflow-x: auto;
+    font-size: 20px;
+}
+
+/* Examples */
+.examples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.example {
+    background: var(--black);
+    border: 2px solid var(--dark-green);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cmd {
+    color: var(--green);
+    font-size: 22px;
+}
+
+.desc {
+    color: var(--dark-green);
+    font-size: 20px;
+}
+
+/* Links */
+.link-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.link-btn {
+    display: block;
+    background: var(--black);
+    color: var(--green);
+    text-decoration: none;
+    padding: 20px;
+    border: 2px solid var(--green);
+    text-align: center;
+    font-size: 24px;
+    transition: all 0.3s;
+}
+
+.link-btn:hover {
+    background: var(--green);
+    color: var(--black);
+    box-shadow: 0 0 20px var(--green);
+}
+
+.icon {
+    margin-right: 10px;
+    font-size: 28px;
+}
+
+/* Footer */
+footer {
+    border-top: 2px solid var(--green);
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.footer-content {
+    margin-bottom: 30px;
+}
+
+.footer-content p {
+    margin-bottom: 10px;
+    font-size: 22px;
+}
+
+.footer-content a {
+    color: var(--green);
+    text-decoration: none;
+}
+
+.footer-content a:hover {
+    text-decoration: underline;
+}
+
+.license {
+    color: var(--dark-green);
+    font-size: 18px;
+}
+
+.ascii-art pre {
+    font-size: 16px;
+    color: var(--dark-green);
+    line-height: 1.2;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .header-text {
+        text-align: center;
+    }
+    
+    .intro {
+        grid-template-columns: 1fr;
+    }
+    
+    h1 {
+        font-size: 48px;
+        letter-spacing: 5px;
+    }
+    
+    .logo {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .tagline {
+        font-size: 22px;
+    }
+    
+    h2 {
+        font-size: 28px;
+    }
+    
+    .examples {
+        grid-template-columns: 1fr;
+    }
+    
+    .link-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Cursor blink */
+@keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+
+.terminal-body code::after {
+    content: '█';
+    animation: blink 1s infinite;
+}

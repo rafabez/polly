@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polly - Free Terminal LLM</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="scanlines"></div>
+    
+    <button class="lang-toggle" onclick="toggleLanguage()">
+        <span class="lang-en">PT</span>
+        <span class="lang-pt">EN</span>
+    </button>
+    
+    <header>
+        <div class="header-content">
+            <img src="assets/polly_logo.png" alt="Polly Logo" class="logo">
+            <div class="header-text">
+                <h1>POLLY</h1>
+                <p class="tagline lang-en">Free Terminal LLM for Linux</p>
+                <p class="tagline lang-pt">LLM Gratuito para Terminal Linux</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="intro">
+        <div class="intro-card">
+            <p class="lang-en">Polly is a free, open-source terminal assistant that brings AI-powered help directly to your Linux command line.</p>
+            <p class="lang-pt">Polly é um assistente de terminal gratuito e open-source que traz ajuda com IA diretamente para sua linha de comando Linux.</p>
+        </div>
+        <div class="intro-card">
+            <p class="lang-en">Ask questions, generate commands, debug code and learn Linux without leaving your terminal.</p>
+            <p class="lang-pt">Faça perguntas, gere comandos, debugge código e aprenda Linux sem sair do terminal.</p>
+        </div>
+        <div class="intro-card">
+            <p class="lang-en">Powered by multiple AI models through Pollinations.ai, Polly makes system administration and development faster and more accessible.</p>
+            <p class="lang-pt">Alimentado por múltiplos modelos de IA via Pollinations.ai, Polly torna administração de sistemas e desenvolvimento mais rápidos e acessíveis.</p>
+        </div>
+    </div>
+
+    <main>
+        <section class="terminal-window">
+            <div class="terminal-header">
+                <span class="terminal-title">polly@terminal:~$</span>
+            </div>
+            <div class="terminal-body">
+                <pre class="lang-en"><code>$ polly "What is recursion?"
+
+<span class="output">Recursion is a programming technique where a function 
+calls itself to solve a problem by breaking it down 
+into smaller, similar subproblems...</span>
+
+$ polly -c "find large files"
+
+<span class="command">find . -type f -size +100M</span>
+
+$ polly -i
+<span class="output">Interactive mode - Type 'exit' to quit</span>
+<span class="prompt">You:</span> _</code></pre>
+                <pre class="lang-pt"><code>$ polly "O que é recursão?"
+
+<span class="output">Recursão é uma técnica de programação onde uma função 
+chama a si mesma para resolver um problema dividindo-o 
+em subproblemas menores e similares...</span>
+
+$ polly -c "encontrar arquivos grandes"
+
+<span class="command">find . -type f -size +100M</span>
+
+$ polly -i
+<span class="output">Modo interativo - Digite 'exit' para sair</span>
+<span class="prompt">Você:</span> _</code></pre>
+            </div>
+        </section>
+
+        <section class="features">
+            <h2 class="lang-en">&gt;&gt; FEATURES</h2>
+            <h2 class="lang-pt">&gt;&gt; FUNCIONALIDADES</h2>
+            <ul class="lang-en">
+                <li><span class="bullet">►</span> Multiple AI Models (Gemini, OpenAI, DeepSeek, Qwen)</li>
+                <li><span class="bullet">►</span> Command Generation & Explanation</li>
+                <li><span class="bullet">►</span> Code Explaining, Debugging & Refactoring</li>
+                <li><span class="bullet">►</span> Interactive Chat Mode</li>
+                <li><span class="bullet">►</span> File Translation</li>
+                <li><span class="bullet">►</span> 100% Free & Open Source</li>
+            </ul>
+            <ul class="lang-pt">
+                <li><span class="bullet">►</span> Múltiplos Modelos de IA (Gemini, OpenAI, DeepSeek, Qwen)</li>
+                <li><span class="bullet">►</span> Geração e Explicação de Comandos</li>
+                <li><span class="bullet">►</span> Explicação, Debug e Refatoração de Código</li>
+                <li><span class="bullet">►</span> Modo Chat Interativo</li>
+                <li><span class="bullet">►</span> Tradução de Arquivos</li>
+                <li><span class="bullet">►</span> 100% Gratuito & Open Source</li>
+            </ul>
+        </section>
+
+        <section class="install">
+            <h2>&gt;&gt; INSTALLATION</h2>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="lang-en">Quick Install (pipx)</span>
+                    <span class="lang-pt">Instalação Rápida (pipx)</span>
+                    <button class="copy-btn lang-en" onclick="copyCode('install1')">COPY</button>
+                    <button class="copy-btn lang-pt" onclick="copyCode('install1')">COPIAR</button>
+                </div>
+                <pre id="install1"><code># Install pipx
+sudo apt install pipx
+
+# Install Polly
+pipx install git+https://github.com/rafabez/polly.git
+
+# Test it
+polly --version</code></pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span>Alternative (venv)</span>
+                    <button class="copy-btn" onclick="copyCode('install2')">COPY</button>
+                </div>
+                <pre id="install2"><code>git clone https://github.com/rafabez/polly.git
+cd polly
+python3 -m venv venv
+source venv/bin/activate
+pip install .</code></pre>
+            </div>
+        </section>
+
+        <section class="usage">
+            <h2 class="lang-en">&gt;&gt; USAGE EXAMPLES</h2>
+            <h2 class="lang-pt">&gt;&gt; EXEMPLOS DE USO</h2>
+            <div class="examples">
+                <div class="example">
+                    <span class="cmd">polly "explain Docker"</span>
+                    <span class="desc lang-en">Ask questions</span>
+                    <span class="desc lang-pt">Fazer perguntas</span>
+                </div>
+                <div class="example">
+                    <span class="cmd">polly -c "compress files"</span>
+                    <span class="desc lang-en">Generate commands</span>
+                    <span class="desc lang-pt">Gerar comandos</span>
+                </div>
+                <div class="example">
+                    <span class="cmd">polly -d error.log</span>
+                    <span class="desc lang-en">Debug code</span>
+                    <span class="desc lang-pt">Debugar código</span>
+                </div>
+                <div class="example">
+                    <span class="cmd">polly -r script.py</span>
+                    <span class="desc lang-en">Refactor code</span>
+                    <span class="desc lang-pt">Refatorar código</span>
+                </div>
+                <div class="example">
+                    <span class="cmd">polly -tf english doc.txt</span>
+                    <span class="desc lang-en">Translate files</span>
+                    <span class="desc lang-pt">Traduzir arquivos</span>
+                </div>
+                <div class="example">
+                    <span class="cmd">polly -i</span>
+                    <span class="desc lang-en">Interactive mode</span>
+                    <span class="desc lang-pt">Modo interativo</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="links">
+            <h2>&gt;&gt; LINKS</h2>
+            <div class="link-grid">
+                <a href="https://github.com/rafabez/polly" target="_blank" class="link-btn">
+                    <span class="icon">◆</span> GitHub Repository
+                </a>
+                <a href="https://github.com/rafabez/polly/blob/main/README.md" target="_blank" class="link-btn">
+                    <span class="icon">◆</span> Documentation
+                </a>
+                <a href="https://github.com/rafabez/polly/issues" target="_blank" class="link-btn">
+                    <span class="icon">◆</span> Report Issues
+                </a>
+                <a href="https://pollinations.ai" target="_blank" class="link-btn">
+                    <span class="icon">◆</span> Pollinations.ai
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p class="lang-en">Made for the Linux community</p>
+            <p class="lang-pt">Feito para a comunidade Linux</p>
+            <p class="lang-en">Powered by <a href="https://pollinations.ai" target="_blank">Pollinations.ai</a></p>
+            <p class="lang-pt">Alimentado por <a href="https://pollinations.ai" target="_blank">Pollinations.ai</a></p>
+            <p class="license">MIT License © 2025 Rafael Beznos</p>
+        </div>
+        <div class="ascii-art">
+            <pre>
+    ___       ____     
+   / _ \___ _/ / /_ __
+  / ___/ _ `/ / / // /
+ /_/   \_,_/_/_/\_, / 
+               /___/  
+            </pre>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

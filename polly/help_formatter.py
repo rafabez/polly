@@ -138,10 +138,3 @@ def print_help():
     console.print("    [green]polly --model gemini 'sua pergunta'[/green]")
     console.print("    [green]polly --model openai 'sua pergunta'[/green]")
     console.print()
-    
-    # Footer
-    console.print(Panel(
-        "[dim]Para mais informações: https://github.com/rafabez/polly[/dim]",
-        border_style="dim"
-    ))
-    console.print()

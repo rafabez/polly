@@ -1,3 +1,5 @@
+![Polly Banner](images/01_parrot_wallpaper.png)
+
 # 🌸 Polly - AI Assistant for Linux Terminal
 
 > 🇧🇷 **[Leia em Português](README.pt-BR.md)** | 🇺🇸 English
