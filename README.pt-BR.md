@@ -241,7 +241,6 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICE
 
 - Alimentado por [Pollinations.ai](https://pollinations.ai) - API gratuita de IA
 - Construído para a comunidade Linux
-- Agradecimentos especiais à equipe BigLinux
 
 ## 🐛 Reportar Bugs & Solicitar Funcionalidades
 

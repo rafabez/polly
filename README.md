@@ -17,28 +17,56 @@
 
 ## 📦 Installation
 
-### From Source (Development)
+### Recommended: Using pipx (Isolated Environment)
+
+```bash
+# Install pipx if you don't have it
+sudo apt install pipx  # Debian/Ubuntu
+# or
+sudo pacman -S python-pipx  # Arch/Manjaro
+
+# Install Polly directly from GitHub
+pipx install git+https://github.com/rafabez/polly.git
+
+# Test installation
+polly --version
+polly "Hello, Polly!"
+```
+
+### Alternative: Using pip with venv
 
 ```bash
 # Clone the repository
 git clone https://github.com/rafabez/polly.git
 cd polly
 
-# Install in development mode
-pip install -e .
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
 
-# Or install directly
+# Install Polly
 pip install .
+
+# Test installation
+polly --version
+
+# To use Polly system-wide, create a symlink:
+sudo ln -s $(pwd)/venv/bin/polly /usr/local/bin/polly
 ```
 
-### System-wide Installation
+### For Development
 
 ```bash
-# Install for current user
-pip install --user .
+# Clone and install in editable mode
+git clone https://github.com/rafabez/polly.git
+cd polly
 
-# Or install system-wide (requires sudo)
-sudo pip install .
+python3 -m venv venv
+source venv/bin/activate
+pip install -e .
+
+# Now you can edit the code and test immediately
+polly --version
 ```
 
 ## 🚀 Quick Start
@@ -81,13 +109,15 @@ polly -i
 
 | Flag | Mode | Description |
 |------|------|-------------|
-| `-e, --explain` | Explain | Explain file content or piped input |
-| `-c, --command` | Command | Get Linux/bash command (no explanation) |
+| `-e, --explain FILE` | Explain | Explain file content |
+| `-c[N], --command [N]` | Command | Get Linux/bash command (use `-c3` for 3 versions) |
 | `-ce, --command-explain` | Command + Explain | Get command with explanations |
-| `-d, --debug` | Debug | Analyze and debug code/errors |
-| `-r, --refactor` | Refactor | Get code improvement suggestions |
-| `-t, --translate` | Translate | Translate text to another language |
+| `-d, --debug [FILE]` | Debug | Analyze and debug code/errors (from file or pipe) |
+| `-r, --refactor [FILE]` | Refactor | Get code improvement suggestions (from file or pipe) |
+| `-t, --translate LANG` | Translate | Translate text to another language |
+| `-tf LANG FILE` | Translate File | Translate file content to another language |
 | `-i, --interactive` | Interactive | Start chat mode with context |
+| `-x, --motivational` | Motivational | Get a funny demotivational phrase 😄 |
 
 ### Model Selection
 
@@ -287,7 +317,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Powered by [Pollinations.ai](https://pollinations.ai) - Free AI API
 - Built for the Linux community
-- Special thanks to the BigLinux team
 
 ## 🐛 Bug Reports & Feature Requests
 
