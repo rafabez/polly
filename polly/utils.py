@@ -1,0 +1,177 @@
+"""
+Utility functions for Polly
+"""
+
+import sys
+from typing import Optional
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.syntax import Syntax
+from rich.live import Live
+from rich.spinner import Spinner
+
+console = Console()
+
+
+def print_response(text: str, format_markdown: bool = True):
+    """
+    Print AI response with formatting
+    
+    Args:
+        text: The text to print
+        format_markdown: Whether to render as markdown
+    """
+    if format_markdown:
+        try:
+            md = Markdown(text)
+            console.print(md)
+        except Exception:
+            # Fallback to plain text if markdown parsing fails
+            console.print(text)
+    else:
+        console.print(text)
+
+
+def print_error(message: str):
+    """Print error message in red"""
+    console.print(f"[bold red]Error:[/bold red] {message}")
+
+
+def print_info(message: str):
+    """Print info message in blue"""
+    console.print(f"[bold blue]Info:[/bold blue] {message}")
+
+
+def print_success(message: str):
+    """Print success message in green"""
+    console.print(f"[bold green]✓[/bold green] {message}")
+
+
+def print_warning(message: str):
+    """Print warning message in yellow"""
+    console.print(f"[bold yellow]Warning:[/bold yellow] {message}")
+
+
+def print_code(code: str, language: str = "bash"):
+    """Print code with syntax highlighting"""
+    syntax = Syntax(code, language, theme="monokai", line_numbers=False)
+    console.print(syntax)
+
+
+def print_panel(content: str, title: str = "Polly", border_style: str = "blue"):
+    """Print content in a panel"""
+    panel = Panel(content, title=title, border_style=border_style)
+    console.print(panel)
+
+
+def read_stdin() -> Optional[str]:
+    """Read input from stdin (for piping)"""
+    if not sys.stdin.isatty():
+        return sys.stdin.read().strip()
+    return None
+
+
+def read_file(filepath: str) -> str:
+    """
+    Read content from a file
+    
+    Args:
+        filepath: Path to the file
+    
+    Returns:
+        File contents as string
+    
+    Raises:
+        Exception if file cannot be read
+    """
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return f.read()
+    except FileNotFoundError:
+        raise Exception(f"File not found: {filepath}")
+    except PermissionError:
+        raise Exception(f"Permission denied: {filepath}")
+    except Exception as e:
+        raise Exception(f"Error reading file: {str(e)}")
+
+
+def stream_response(generator, format_markdown: bool = True):
+    """
+    Stream response chunks to console
+    
+    Args:
+        generator: Generator yielding response chunks
+        format_markdown: Whether to format as markdown
+    """
+    accumulated = ""
+    try:
+        for chunk in generator:
+            accumulated += chunk
+            console.print(chunk, end="", markup=False)
+        console.print()  # New line at the end
+        return accumulated
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Interrupted by user[/yellow]")
+        return accumulated
+
+
+def show_spinner(message: str = "Thinking..."):
+    """
+    Show a spinner with message
+    
+    Returns:
+        Live context manager for spinner
+    """
+    spinner = Spinner("dots", text=message)
+    return Live(spinner, console=console, transient=True)
+
+
+def truncate_context(messages: list, max_chars: int = 5000) -> list:
+    """
+    Truncate conversation context to fit within limits
+    Keeps system message and most recent messages
+    
+    Args:
+        messages: List of message dicts
+        max_chars: Maximum total characters
+    
+    Returns:
+        Truncated message list
+    """
+    if not messages:
+        return messages
+    
+    # Calculate current size
+    total_chars = sum(len(msg.get("content", "")) for msg in messages)
+    
+    if total_chars <= max_chars:
+        return messages
+    
+    # Keep system message if present
+    system_msg = None
+    user_messages = []
+    
+    for msg in messages:
+        if msg.get("role") == "system":
+            system_msg = msg
+        else:
+            user_messages.append(msg)
+    
+    # Keep most recent messages
+    truncated = []
+    if system_msg:
+        truncated.append(system_msg)
+        max_chars -= len(system_msg.get("content", ""))
+    
+    # Add messages from most recent backwards
+    current_chars = 0
+    for msg in reversed(user_messages):
+        msg_chars = len(msg.get("content", ""))
+        if current_chars + msg_chars <= max_chars:
+            truncated.insert(1 if system_msg else 0, msg)
+            current_chars += msg_chars
+        else:
+            break
+    
+    return truncated

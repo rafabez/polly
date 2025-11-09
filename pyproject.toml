@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "polly-ai"
+version = "0.1.0"
+description = "AI Assistant for Linux Terminal powered by Pollinations.ai"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+keywords = ["ai", "assistant", "terminal", "cli", "linux", "bash", "pollinations"]
+authors = [
+    {name = "Interzone (Rafael Beznos)"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Shells",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "requests>=2.31.0",
+    "rich>=13.7.0",
+    "pyyaml>=6.0.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/rafabez/polly"
+Repository = "https://github.com/rafabez/polly"
+Issues = "https://github.com/rafabez/polly/issues"
+
+[project.scripts]
+polly = "polly.__main__:main"
+
+[tool.setuptools]
+packages = ["polly"]

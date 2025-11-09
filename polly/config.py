@@ -1,0 +1,92 @@
+"""
+Configuration management for Polly
+"""
+
+import os
+import yaml
+from pathlib import Path
+from typing import Dict, Any
+
+# Default configuration
+DEFAULT_CONFIG = {
+    "default_model": "gemini",
+    "temperature": 0.7,
+    "stream": False,
+    "referrer": "deepentest.com",
+    "language": "pt",  # pt, en, pt-br, portuguese, english
+}
+
+# Available models with descriptions
+AVAILABLE_MODELS = {
+    "deepseek": "DeepSeek V3.1 - Advanced reasoning model",
+    "gemini": "Gemini 2.5 Flash Lite - Fast and capable (default)",
+    "gemini-search": "Gemini 2.5 Flash Lite with Google Search",
+    "openai": "OpenAI GPT-5 Nano - Fast and efficient",
+    "openai-large": "OpenAI GPT-4.1 - Most capable",
+    "qwen-coder": "Qwen 2.5 Coder 32B - Specialized for coding",
+    "mistral": "Mistral Small 3.2 24B - Balanced performance",
+}
+
+# API Configuration
+API_BASE_URL = "https://text.pollinations.ai"
+API_TIMEOUT = 30
+
+
+class Config:
+    """Manages Polly configuration"""
+    
+    def __init__(self):
+        self.config_dir = Path.home() / ".config" / "polly"
+        self.config_file = self.config_dir / "config.yaml"
+        self.config = self._load_config()
+    
+    def _load_config(self) -> Dict[str, Any]:
+        """Load configuration from file or create default"""
+        if self.config_file.exists():
+            try:
+                with open(self.config_file, 'r') as f:
+                    user_config = yaml.safe_load(f) or {}
+                # Merge with defaults
+                config = DEFAULT_CONFIG.copy()
+                config.update(user_config)
+                return config
+            except Exception as e:
+                print(f"Warning: Could not load config file: {e}")
+                return DEFAULT_CONFIG.copy()
+        return DEFAULT_CONFIG.copy()
+    
+    def save_config(self) -> bool:
+        """Save current configuration to file"""
+        try:
+            self.config_dir.mkdir(parents=True, exist_ok=True)
+            with open(self.config_file, 'w') as f:
+                yaml.dump(self.config, f, default_flow_style=False)
+            return True
+        except Exception as e:
+            print(f"Error saving config: {e}")
+            return False
+    
+    def get(self, key: str, default=None):
+        """Get configuration value"""
+        return self.config.get(key, default)
+    
+    def set(self, key: str, value: Any):
+        """Set configuration value"""
+        self.config[key] = value
+    
+    def reset_to_defaults(self):
+        """Reset configuration to defaults"""
+        self.config = DEFAULT_CONFIG.copy()
+        self.save_config()
+
+
+# Global config instance
+_config = None
+
+
+def get_config() -> Config:
+    """Get global configuration instance"""
+    global _config
+    if _config is None:
+        _config = Config()
+    return _config

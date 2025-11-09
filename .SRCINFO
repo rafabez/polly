@@ -1,0 +1,19 @@
+pkgbase = polly-ai
+	pkgdesc = AI Assistant for Linux Terminal powered by Pollinations.ai
+	pkgver = 0.1.0
+	pkgrel = 1
+	url = https://github.com/rafabez/polly
+	arch = any
+	license = MIT
+	makedepends = python-setuptools
+	makedepends = python-build
+	makedepends = python-installer
+	makedepends = python-wheel
+	depends = python
+	depends = python-requests
+	depends = python-rich
+	depends = python-yaml
+	source = polly-ai-0.1.0.tar.gz::https://github.com/rafabez/polly/archive/v0.1.0.tar.gz
+	sha256sums = SKIP
+
+pkgname = polly-ai
