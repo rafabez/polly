@@ -19,27 +19,56 @@
 
 ## 📦 Instalação
 
-### Instalação Rápida (Recomendado para Testes)
+### Recomendado: Usando pipx (Ambiente Isolado)
 
 ```bash
-# Clone o repositório
-cd ~/Github
-git clone https://github.com/rafabez/polly.git
-cd polly
+# Instale pipx se não tiver
+sudo apt install pipx  # Debian/Ubuntu
+# ou
+sudo pacman -S python-pipx  # Arch/Manjaro
 
-# Instale em modo desenvolvimento
-pip install --user -e .
+# Instale Polly direto do GitHub
+pipx install git+https://github.com/rafabez/polly.git
 
 # Teste a instalação
 polly --version
 polly "Olá, Polly!"
 ```
 
-**Nota**: Se o comando `polly` não for encontrado, adicione ao PATH:
+### Alternativa: Usando pip com venv
 
 ```bash
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
+# Clone o repositório
+git clone https://github.com/rafabez/polly.git
+cd polly
+
+# Crie ambiente virtual
+python3 -m venv venv
+source venv/bin/activate
+
+# Instale Polly
+pip install .
+
+# Teste a instalação
+polly --version
+
+# Para usar Polly no sistema todo, crie um symlink:
+sudo ln -s $(pwd)/venv/bin/polly /usr/local/bin/polly
+```
+
+### Para Desenvolvimento
+
+```bash
+# Clone e instale em modo editável
+git clone https://github.com/rafabez/polly.git
+cd polly
+
+python3 -m venv venv
+source venv/bin/activate
+pip install -e .
+
+# Agora você pode editar o código e testar imediatamente
+polly --version
 ```
 
 ## 🚀 Uso Rápido
