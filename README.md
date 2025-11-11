@@ -233,7 +233,7 @@ $ echo "Good morning" | polly -t Spanish
 Buenos días
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 Polly stores configuration in `~/.config/polly/config.yaml`
 
