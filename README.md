@@ -14,6 +14,7 @@
 - **Interactive Chat** - Conversational mode with context awareness
 - **Beautiful Output** - Markdown rendering and syntax highlighting
 - **Streaming Support** - Real-time responses
+- **PDF Support** - Read PDF files and generate PDF outputs
 - **Configurable** - Customize default model, temperature, and more
 - **Pipe Support** - Works with stdin/stdout for scripting
 - **Cross-Platform** - Works on Linux, macOS, and Windows
@@ -157,6 +158,13 @@ polly -s "Tell me a long story"
 # Save output to file
 polly -o response.txt "Explain Docker"
 
+# Save output as PDF
+polly "Explain Docker containers" --pdf docker-guide.pdf
+
+# Read PDF files
+polly -e technical-document.pdf
+polly -d error-report.pdf
+
 # JSON output
 polly --json "What is Linux?"
 
@@ -231,6 +239,24 @@ Olá, como você está?
 
 $ echo "Good morning" | polly -t Spanish
 Buenos días
+```
+
+### PDF Operations
+
+```bash
+# Read and explain PDF
+$ polly -e report.pdf
+[Extracts and explains PDF content]
+
+# Debug code in PDF
+$ polly -d technical-doc.pdf
+
+# Generate PDF output
+$ polly "Explain machine learning" --pdf ml-guide.pdf
+✓ PDF saved to: ml-guide.pdf
+
+# Read PDF and save as new PDF
+$ polly -e input.pdf --pdf output.pdf
 ```
 
 ## Configuration
