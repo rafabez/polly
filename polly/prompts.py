@@ -127,8 +127,9 @@ def get_prompt(mode: str, content: str = "", language: str = "pt", **kwargs) -> 
     system_prompt = prompt_config["system"]
     
     # Handle command mode with multiple versions
-    if mode == "command" and "num_versions" in kwargs:
-        num = kwargs["num_versions"]
+    if mode == "command":
+        num = kwargs.get("num_versions", 1)
+        kwargs["num_versions"] = num
         if lang_key in ["pt", "pt-br", "portuguese"]:
             kwargs["versions_text"] = "versão" if num == 1 else "versões diferentes"
             kwargs["os_comandos"] = "o comando" if num == 1 else "os comandos (um por linha)"
