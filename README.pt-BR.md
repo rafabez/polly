@@ -29,6 +29,12 @@ sudo apt install pipx  # Debian/Ubuntu
 # ou
 sudo pacman -S python-pipx  # Arch/Manjaro
 
+# Configure o PATH do pipx (apenas na primeira vez)
+pipx ensurepath
+
+# Reinicie seu shell ou execute:
+source ~/.bashrc  # ou ~/.zshrc
+
 # Instale Polly direto do GitHub
 pipx install git+https://github.com/rafabez/polly.git
 
@@ -39,6 +45,8 @@ polly "Olá, Polly!"
 # Opcional: Adicionar suporte a PDF (se não instalado)
 pipx inject polly-ai pypdf reportlab
 ```
+
+**Nota:** Se o comando `polly` não for encontrado após a instalação, execute `pipx ensurepath` e reinicie seu terminal.
 
 ### Alternativa: Usando pip com venv
 
