@@ -35,6 +35,9 @@ pipx install git+https://github.com/rafabez/polly.git
 # Teste a instalação
 polly --version
 polly "Olá, Polly!"
+
+# Opcional: Adicionar suporte a PDF (se não instalado)
+pipx inject polly-ai pypdf reportlab
 ```
 
 ### Alternativa: Usando pip com venv
