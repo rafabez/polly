@@ -86,3 +86,6 @@ DOCS/debug.txt
 check_system.sh
 init_repo.sh
 Makefile
+
+# Web development
+web/
