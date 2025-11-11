@@ -72,7 +72,7 @@ pip install -e .
 polly --version
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Basic Usage
 
