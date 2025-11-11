@@ -36,11 +36,15 @@ def create_parser() -> argparse.ArgumentParser:
     )
     mode_group.add_argument(
         "-c", "--command",
-        nargs="?",
-        const=1,
+        action="store_true",
+        help="Get Linux/bash command"
+    )
+    mode_group.add_argument(
+        "--command-versions",
         type=int,
         metavar="N",
-        help="Get Linux/bash command (add number for multiple versions: -c3)"
+        default=1,
+        help="Number of command versions (use with -c, default: 1)"
     )
     mode_group.add_argument(
         "-ce", "--command-explain",
@@ -180,6 +184,11 @@ def create_parser() -> argparse.ArgumentParser:
     )
     
     return parser
+
+
+def parse_args(argv: Optional[list] = None):
+    """Parse command-line arguments"""
+    return create_parser().parse_args(argv)
 
 
 def validate_args(args) -> Optional[str]:
