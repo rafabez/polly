@@ -105,7 +105,7 @@ polly -i
 | `-t, --translate LANG` | Traduzir | Traduz texto para outro idioma |
 | `-tf LANG FILE` | Traduzir Arquivo | Traduz conteúdo de arquivo para outro idioma |
 | `-i, --interactive` | Interativo | Inicia modo chat com contexto |
-| `-x, --motivational` | Motivacional | Obtém frase desmotivacional engraçada 😄 |
+| `-x, --motivational` | Motivacional | Obtém frase desmotivacional engraçada |
 
 ### Seleção de Modelo
 

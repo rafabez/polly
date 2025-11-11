@@ -120,7 +120,7 @@ polly -i
 | `-t, --translate LANG` | Translate | Translate text to another language |
 | `-tf LANG FILE` | Translate File | Translate file content to another language |
 | `-i, --interactive` | Interactive | Start chat mode with context |
-| `-x, --motivational` | Motivational | Get a funny demotivational phrase 😄 |
+| `-x, --motivational` | Motivational | Get a funny demotivational phrase |
 
 ### Model Selection
 
@@ -296,13 +296,12 @@ pip install -e ".[dev]"
 pytest tests/
 ```
 
-## 📝 Requirements
+## Requirements
 
 - Python 3.8 or higher
-- Linux operating system
 - Internet connection (for API calls)
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
