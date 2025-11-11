@@ -71,6 +71,7 @@ def print_help():
     output_table.add_column(style="white")
     
     output_table.add_row("-o, --output FILE", "Salva resposta em arquivo")
+    output_table.add_row("--pdf FILE", "Salva resposta como PDF")
     output_table.add_row("--json", "Saída em formato JSON")
     output_table.add_row("--no-markdown", "Desabilita formatação markdown")
     
@@ -111,8 +112,10 @@ def print_help():
         ("Pergunta simples", "polly 'O que é recursão?'"),
         ("Comando bash", "polly -c 'listar arquivos grandes'"),
         ("Explicar arquivo", "polly -e script.sh"),
+        ("Explicar PDF", "polly -e documento.pdf"),
         ("Debug arquivo", "polly -d api.py"),
         ("Refactor arquivo", "polly -r code.py"),
+        ("Salvar como PDF", "polly 'Explique Docker' --pdf output.pdf"),
         ("Explicar com pipe", "cat api.py | polly"),
         ("Modo interativo", "polly -i"),
         ("Frase engraçada", "polly -x"),
@@ -140,4 +143,8 @@ def print_help():
     console.print("  [dim]• Se um modelo estiver fora do ar, tente outro:[/dim]")
     console.print("    [green]polly --model gemini 'sua pergunta'[/green]")
     console.print("    [green]polly --model openai 'sua pergunta'[/green]")
+    console.print()
+    console.print("  [dim]• Suporte a PDF (leitura e escrita):[/dim]")
+    console.print("    [green]polly -e relatorio.pdf[/green]  [dim](ler PDF)[/dim]")
+    console.print("    [green]polly 'resumo' --pdf saida.pdf[/green]  [dim](gerar PDF)[/dim]")
     console.print()

@@ -212,6 +212,15 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
             except Exception as e:
                 print_error(f"Failed to save output: {str(e)}")
         
+        # Save as PDF if requested
+        if args.pdf:
+            from .pdf_handler import write_pdf
+            title = f"Polly - {mode.title()} Mode" if mode else "Polly Output"
+            if write_pdf(result, args.pdf, title=title):
+                pass  # Success message printed by write_pdf
+            else:
+                print_error("Failed to save PDF")
+        
         # JSON output
         if args.json:
             output = {

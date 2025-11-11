@@ -74,7 +74,7 @@ def read_stdin() -> Optional[str]:
 
 def read_file(filepath: str) -> str:
     """
-    Read content from a file
+    Read file contents (supports PDF files)
     
     Args:
         filepath: Path to the file
@@ -85,6 +85,16 @@ def read_file(filepath: str) -> str:
     Raises:
         Exception if file cannot be read
     """
+    from .pdf_handler import is_pdf_file, read_pdf
+    
+    # Check if it's a PDF file
+    if is_pdf_file(filepath):
+        content = read_pdf(filepath)
+        if content is None:
+            raise Exception("Failed to extract text from PDF")
+        return content
+    
+    # Regular text file
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             return f.read()
@@ -92,6 +102,8 @@ def read_file(filepath: str) -> str:
         raise Exception(f"File not found: {filepath}")
     except PermissionError:
         raise Exception(f"Permission denied: {filepath}")
+    except UnicodeDecodeError:
+        raise Exception(f"File encoding error. PDF files are supported with --explain, --debug, etc.")
     except Exception as e:
         raise Exception(f"Error reading file: {str(e)}")
 

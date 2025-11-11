@@ -115,6 +115,11 @@ def create_parser() -> argparse.ArgumentParser:
         help="Save response to file"
     )
     output_group.add_argument(
+        "--pdf",
+        metavar="FILE",
+        help="Save response as PDF file"
+    )
+    output_group.add_argument(
         "--json",
         action="store_true",
         help="Output in JSON format"
