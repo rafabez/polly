@@ -16,8 +16,11 @@ def print_help():
     
     # Header
     console.print()
-    console.print(Panel.fit(
-        "[bold cyan]🌸 Polly - AI Assistant for Linux Terminal 🌸[/bold cyan]\n"
+    console.print(Panel(
+        "[bold green]Polly[/bold green] - Assistente de IA Cross-Platform para Terminal",
+        border_style="green"
+    ))
+    console.print(Panel(
         "[dim]Powered by Pollinations.ai[/dim]",
         border_style="cyan"
     ))

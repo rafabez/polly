@@ -15,7 +15,7 @@ def create_parser() -> argparse.ArgumentParser:
     
     parser = argparse.ArgumentParser(
         prog="polly",
-        description="Polly - AI Assistant for Linux Terminal (Powered by Pollinations.ai)",
+        description='Polly - Cross-Platform AI Terminal Assistant',
         add_help=False,  # Disable default help to use custom
         formatter_class=argparse.RawDescriptionHelpFormatter
     )

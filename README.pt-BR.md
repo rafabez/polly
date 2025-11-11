@@ -1,23 +1,24 @@
 ![Polly Banner](images/01_parrot_wallpaper.png)
 
-# 🌸 Polly - Assistente de IA para Terminal Linux
+# Polly - Assistente de IA Cross-Platform para Terminal
 
-> 🇧🇷 Português | 🇺🇸 **[Read in English](README.md)**
+> Português | **[Read in English](README.md)**
 
-**Polly** é um poderoso assistente de IA para linha de comando no Linux, alimentado pela API gratuita do [Pollinations.ai](https://pollinations.ai). Obtenha respostas instantâneas, sugestões de comandos, explicações de código e muito mais—tudo direto do seu terminal.
+**Polly** é um poderoso assistente de IA cross-platform para linha de comando, alimentado pela API gratuita do [Pollinations.ai](https://pollinations.ai). Obtenha respostas instantâneas, sugestões de comandos, explicações de código e muito mais—tudo direto do seu terminal.
 
-## ✨ Funcionalidades
+## Funcionalidades
 
-- 🚀 **Rápido & Gratuito** - Alimentado pela API gratuita do Pollinations.ai
-- 🎯 **Múltiplos Modos** - Explicar, geração de comandos, debug, refatoração e mais
-- 🤖 **Múltiplos Modelos de IA** - Escolha entre Gemini, OpenAI, DeepSeek, Qwen Coder e mais
-- 💬 **Chat Interativo** - Modo conversacional com consciência de contexto
-- 🎨 **Saída Bonita** - Renderização Markdown e destaque de sintaxe
-- ⚡ **Suporte a Streaming** - Respostas em tempo real
-- 🔧 **Configurável** - Personalize modelo padrão, temperatura e mais
-- 📝 **Suporte a Pipe** - Funciona com stdin/stdout para scripting
+- **Rápido & Gratuito** - Alimentado pela API gratuita do Pollinations.ai
+- **Múltiplos Modos** - Explicar, geração de comandos, debug, refatoração e mais
+- **Múltiplos Modelos de IA** - Escolha entre Gemini, OpenAI, DeepSeek, Qwen Coder e mais
+- **Chat Interativo** - Modo conversacional com consciência de contexto
+- **Saída Bonita** - Renderização Markdown e destaque de sintaxe
+- **Suporte a Streaming** - Respostas em tempo real
+- **Configurável** - Personalize modelo padrão, temperatura e mais
+- **Suporte a Pipe** - Funciona com stdin/stdout para scripting
+- **Cross-Platform** - Funciona em Linux, macOS e Windows
 
-## 📦 Instalação
+## Instalação
 
 ### Recomendado: Usando pipx (Ambiente Isolado)
 
@@ -71,7 +72,7 @@ pip install -e .
 polly --version
 ```
 
-## 🚀 Uso Rápido
+## Uso Rápido
 
 ### Uso Básico
 
@@ -149,7 +150,7 @@ cat script.py | polly -d "Encontre bugs neste código"
 echo "Olá mundo" | polly -t "Inglês"
 ```
 
-## 🎯 Exemplos de Uso
+## Exemplos de Uso
 
 ### Geração de Comandos
 
@@ -217,7 +218,7 @@ $ echo "Bom dia" | polly -t Espanhol
 Buenos días
 ```
 
-## ⚙️ Configuração
+## Configuração
 
 Polly armazena configuração em `~/.config/polly/config.yaml`
 
@@ -248,13 +249,12 @@ referrer: deepentest.com
 language: pt  # pt, en, portuguese, english
 ```
 
-## 📝 Requisitos
+## Requisitos
 
 - Python 3.8 ou superior
-- Sistema operacional Linux
 - Conexão com internet (para chamadas de API)
 
-## 🤝 Contribuindo
+## Contribuindo
 
 Contribuições são bem-vindas! Por favor, sinta-se à vontade para enviar um Pull Request.
 
@@ -264,26 +264,20 @@ Contribuições são bem-vindas! Por favor, sinta-se à vontade para enviar um P
 4. Push para a branch (`git push origin feature/funcionalidade-incrivel`)
 5. Abra um Pull Request
 
-## 📄 Licença
+## Licença
 
 Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## 🙏 Agradecimentos
+## Agradecimentos
 
 - Alimentado por [Pollinations.ai](https://pollinations.ai) - API gratuita de IA
-- Construído para a comunidade Linux
+- Construído para a comunidade de desenvolvedores
 
-## 🐛 Reportar Bugs & Solicitar Funcionalidades
+## Reportar Bugs & Solicitar Funcionalidades
 
 Por favor, use a página de [GitHub Issues](https://github.com/rafabez/polly/issues) para reportar bugs ou solicitar funcionalidades.
 
-## 📚 Recursos Adicionais
+## Recursos Adicionais
 
 - [Documentação da API Pollinations.ai](https://github.com/pollinations/pollinations/blob/main/APIDOCS.md)
 - [Modelos Disponíveis](https://text.pollinations.ai/models)
-- [Guia de Instalação Completo](INSTALL.md)
-- [Guia de Início Rápido](QUICKSTART.md)
-
----
-
-Feito com ❤️ para a comunidade Linux

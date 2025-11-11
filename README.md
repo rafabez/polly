@@ -1,23 +1,24 @@
 ![Polly Banner](images/01_parrot_wallpaper.png)
 
-# 🌸 Polly - AI Assistant for Linux Terminal
+# Polly - Cross-Platform AI Terminal Assistant
 
-> 🇧🇷 **[Leia em Português](README.pt-BR.md)** | 🇺🇸 English
+> **[Leia em Português](README.pt-BR.md)** | English
 
-**Polly** is a powerful command-line AI assistant for Linux, powered by [Pollinations.ai](https://pollinations.ai). Get instant answers, command suggestions, code explanations, and more—all from your terminal.
+**Polly** is a powerful cross-platform command-line AI assistant powered by [Pollinations.ai](https://pollinations.ai). Get instant answers, command suggestions, code explanations, and more—all from your terminal.
 
-## ✨ Features
+## Features
 
-- 🚀 **Fast & Free** - Powered by Pollinations.ai's free API
-- 🎯 **Multiple Modes** - Explain, command generation, debugging, refactoring, and more
-- 🤖 **Multiple AI Models** - Choose from Gemini, OpenAI, DeepSeek, Qwen Coder, and more
-- 💬 **Interactive Chat** - Conversational mode with context awareness
-- 🎨 **Beautiful Output** - Markdown rendering and syntax highlighting
-- ⚡ **Streaming Support** - Real-time responses
-- 🔧 **Configurable** - Customize default model, temperature, and more
-- 📝 **Pipe Support** - Works with stdin/stdout for scripting
+- **Fast & Free** - Powered by Pollinations.ai's free API
+- **Multiple Modes** - Explain, command generation, debugging, refactoring, and more
+- **Multiple AI Models** - Choose from Gemini, OpenAI, DeepSeek, Qwen Coder, and more
+- **Interactive Chat** - Conversational mode with context awareness
+- **Beautiful Output** - Markdown rendering and syntax highlighting
+- **Streaming Support** - Real-time responses
+- **Configurable** - Customize default model, temperature, and more
+- **Pipe Support** - Works with stdin/stdout for scripting
+- **Cross-Platform** - Works on Linux, macOS, and Windows
 
-## 📦 Installation
+## Installation
 
 ### Recommended: Using pipx (Isolated Environment)
 
@@ -164,7 +165,7 @@ cat script.py | polly -d "Find bugs in this code"
 echo "Hello world" | polly -t "Portuguese"
 ```
 
-## 🎯 Usage Examples
+## Usage Examples
 
 ### Command Generation
 
@@ -263,7 +264,7 @@ stream: false
 referrer: deepentest.com
 ```
 
-## 🔧 Development
+## Development
 
 ### Project Structure
 
@@ -311,24 +312,20 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Powered by [Pollinations.ai](https://pollinations.ai) - Free AI API
-- Built for the Linux community
+- Built for the developer community
 
-## 🐛 Bug Reports & Feature Requests
+## Bug Reports & Feature Requests
 
 Please use the [GitHub Issues](https://github.com/rafabez/polly/issues) page to report bugs or request features.
 
-## 📚 Additional Resources
+## Additional Resources
 
 - [Pollinations.ai API Documentation](https://github.com/pollinations/pollinations/blob/main/APIDOCS.md)
 - [Available Models](https://text.pollinations.ai/models)
-
----
-
-Made with ❤️ for the Linux community

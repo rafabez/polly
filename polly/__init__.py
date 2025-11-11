@@ -1,5 +1,5 @@
 """
-Polly - AI Assistant for Linux Terminal
+Polly - Cross-Platform AI Terminal Assistant
 Powered by Pollinations.ai
 """
 
