@@ -12,7 +12,7 @@ DEFAULT_CONFIG = {
     "default_model": "gemini",
     "temperature": 0.7,
     "stream": False,
-    "referrer": "deepentest.com",
+    "referrer": "interzonesec.com",
     "language": "pt",  # pt, en, pt-br, portuguese, english
 }
 

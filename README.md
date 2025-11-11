@@ -298,7 +298,7 @@ default_model: gemini
 temperature: 0.7
 max_tokens: 2000
 stream: false
-referrer: deepentest.com
+referrer: interzonesec.com
 ```
 
 ## Development

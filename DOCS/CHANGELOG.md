@@ -77,7 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical Details
 - Built with Python
 - Uses Pollinations.ai free API
-- Referrer: deepentest.com
+- Referrer: interzonesec.com
 - Dependencies: requests, rich, pyyaml
 - Modular architecture
 - Type hints

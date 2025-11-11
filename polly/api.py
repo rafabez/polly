@@ -16,7 +16,7 @@ class PollinationsAPI:
         self.config = get_config()
         self.base_url = API_BASE_URL
         self.timeout = API_TIMEOUT
-        self.referrer = self.config.get("referrer", "deepentest.com")
+        self.referrer = self.config.get("referrer", "interzonesec.com")
     
     def _get_headers(self) -> Dict[str, str]:
         """Get HTTP headers with referrer"""

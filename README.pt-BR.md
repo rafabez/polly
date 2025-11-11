@@ -282,7 +282,7 @@ polly -v
 default_model: gemini
 temperature: 0.7
 stream: false
-referrer: deepentest.com
+referrer: interzonesec.com
 language: pt  # pt, en, portuguese, english
 ```
 

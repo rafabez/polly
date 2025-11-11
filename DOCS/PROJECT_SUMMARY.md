@@ -192,7 +192,7 @@ polly/
 ## 🔒 Segurança e Privacidade
 
 - API gratuita, sem necessidade de chave
-- Referrer obrigatório: `deepentest.com`
+- Referrer obrigatório: `interzonesec.com`
 - Sem coleta de dados do usuário
 - Código open source (MIT License)
 - Validação de entrada para evitar injeção
