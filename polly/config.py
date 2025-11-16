@@ -15,8 +15,10 @@ DEFAULT_CONFIG = {
     "referrer": "interzonesec.com",
     "language": "pt",  # pt, en, pt-br, portuguese, english
     "use_backend": True,  # Use proxy backend by default
-    "backend_url": "https://api.interzonesec.com",  # Polly backend proxy URL
 }
+
+# Backend URL (hardcoded - not user-configurable)
+BACKEND_URL = "https://api.interzonesec.com"
 
 # Available models with descriptions (ordered by reliability)
 AVAILABLE_MODELS = {

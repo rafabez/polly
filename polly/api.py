@@ -6,7 +6,7 @@ import requests
 import json
 from typing import Optional, List, Dict, Generator
 from urllib.parse import quote
-from .config import get_config, API_BASE_URL, API_TIMEOUT, NEW_API_BASE_URL, AVAILABLE_MODELS
+from .config import get_config, API_BASE_URL, API_TIMEOUT, NEW_API_BASE_URL, AVAILABLE_MODELS, BACKEND_URL
 
 
 class PollinationsAPI:
@@ -16,7 +16,7 @@ class PollinationsAPI:
         self.config = get_config()
         self.use_direct_api = use_direct_api
         self.use_backend = self.config.get("use_backend", True) and not use_direct_api
-        self.backend_url = self.config.get("backend_url", "http://92.5.99.177")
+        self.backend_url = BACKEND_URL  # Hardcoded backend URL
         self.base_url = API_BASE_URL  # Old API (fallback)
         self.new_api_url = NEW_API_BASE_URL  # New direct API
         self.timeout = API_TIMEOUT
@@ -150,63 +150,51 @@ class PollinationsAPI:
 
         except requests.exceptions.Timeout:
             raise Exception(
-                f"⏱️  Timeout: O modelo '{model}' demorou muito para responder.\n"
-                f"💡 Tente: polly --list-models para ver outros modelos disponíveis"
+                f"⏱️  Timeout: Model '{model}' took too long to respond.\n"
+                f"💡 Try: polly --list-models to see other available models"
             )
         except requests.exceptions.HTTPError as e:
-            status_code = e.response.status_code if e.response else "desconhecido"
-
-            # Try to extract error message from response
-            error_detail = ""
-            try:
-                error_data = e.response.json()
-                if "detail" in error_data:
-                    # Clean up error message (remove URLs and technical details)
-                    error_detail = str(error_data["detail"])
-                    if "Pollinations API error:" in error_detail:
-                        error_detail = "Erro na API"
-            except:
-                pass
+            status_code = e.response.status_code if e.response else "unknown"
 
             if status_code == 503 or status_code == 502:
                 raise Exception(
-                    f"🔴 Serviço temporariamente indisponível.\n"
-                    f"💡 Tente outro modelo: polly --list-models"
+                    f"🔴 Service temporarily unavailable.\n"
+                    f"💡 Try another model: polly --list-models"
                 )
             elif status_code == 429:
                 raise Exception(
-                    f"⚠️  Limite de requisições atingido.\n"
-                    f"💡 Aguarde alguns segundos e tente novamente."
+                    f"⚠️  Rate limit exceeded.\n"
+                    f"💡 Wait a few seconds and try again."
                 )
             elif status_code == 500:
                 raise Exception(
-                    f"❌ Erro no servidor (modelo: {model}).\n"
-                    f"💡 Tente outro modelo: polly --list-models\n"
-                    f"   Sugestão: polly --model mistral <sua pergunta>"
+                    f"❌ Server error (model: {model}).\n"
+                    f"💡 Try another model: polly --list-models\n"
+                    f"   Suggestion: polly --model mistral <your question>"
                 )
             else:
                 raise Exception(
-                    f"❌ Erro HTTP {status_code} ao processar requisição.\n"
-                    f"💡 Tente outro modelo: polly --list-models"
+                    f"❌ HTTP {status_code} error.\n"
+                    f"💡 Try another model: polly --list-models"
                 )
         except requests.exceptions.ConnectionError:
             raise Exception(
-                f"🌐 Erro de conexão com o servidor.\n"
-                f"💡 Verifique sua conexão com a internet.\n"
-                f"   Ou tente com API direta: polly --direct-api <sua pergunta>"
+                f"🌐 Connection error.\n"
+                f"💡 Check your internet connection.\n"
+                f"   Or try direct API: polly --direct-api <your question>"
             )
         except requests.exceptions.RequestException as e:
             # Don't show URLs in error messages
-            error_msg = str(e).split("url:")[0].strip()
+            error_msg = str(e).split("url:")[0].split("URL:")[0].strip()
             raise Exception(
-                f"❌ Erro na requisição: {error_msg}\n"
-                f"💡 Tente outro modelo: polly --list-models"
+                f"❌ Request error: {error_msg}\n"
+                f"💡 Try another model: polly --list-models"
             )
         except (KeyError, json.JSONDecodeError) as e:
             raise Exception(
-                f"⚠️  Resposta inválida da API.\n"
-                f"💡 O modelo '{model}' pode estar temporariamente com problemas.\n"
-                f"   Tente: polly --model mistral <sua pergunta>"
+                f"⚠️  Invalid API response.\n"
+                f"💡 Model '{model}' may be temporarily unavailable.\n"
+                f"   Try: polly --model mistral <your question>"
             )
     
     def _handle_streaming_response(self, response) -> Generator[str, None, None]:
