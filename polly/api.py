@@ -6,15 +6,19 @@ import requests
 import json
 from typing import Optional, List, Dict, Generator
 from urllib.parse import quote
-from .config import get_config, API_BASE_URL, API_TIMEOUT
+from .config import get_config, API_BASE_URL, API_TIMEOUT, NEW_API_BASE_URL, AVAILABLE_MODELS
 
 
 class PollinationsAPI:
     """Client for Pollinations.ai Text Generation API"""
-    
-    def __init__(self):
+
+    def __init__(self, use_direct_api: bool = False):
         self.config = get_config()
-        self.base_url = API_BASE_URL
+        self.use_direct_api = use_direct_api
+        self.use_backend = self.config.get("use_backend", True) and not use_direct_api
+        self.backend_url = self.config.get("backend_url", "http://92.5.99.177")
+        self.base_url = API_BASE_URL  # Old API (fallback)
+        self.new_api_url = NEW_API_BASE_URL  # New direct API
         self.timeout = API_TIMEOUT
         self.referrer = self.config.get("referrer", "interzonesec.com")
     
@@ -91,41 +95,49 @@ class PollinationsAPI:
     ) -> str:
         """
         OpenAI-compatible chat completion for conversations
-        
+
         Args:
             messages: List of message dicts with 'role' and 'content'
             model: AI model to use
             temperature: Creativity level 0.0-3.0
             seed: Random seed for reproducible/varied responses
             stream: Enable streaming response
-        
+
         Returns:
             The AI's response as a string
         """
         model = model or self.config.get("default_model")
         temperature = temperature if temperature is not None else self.config.get("temperature")
-        
+
         payload = {
             "model": model,
             "messages": messages,
             "temperature": temperature,
             "stream": stream
         }
-        
+
         # Add seed if provided (for varied responses in motivational mode)
         if seed is not None:
             payload["seed"] = seed
-        
+
+        # Determine which API to use
+        if self.use_backend:
+            # Use proxy backend (default)
+            api_url = f"{self.backend_url}/api/chat/completions"
+        else:
+            # Use old direct API as fallback
+            api_url = f"{self.base_url}/openai"
+
         try:
             response = requests.post(
-                f"{self.base_url}/openai",
+                api_url,
                 json=payload,
                 headers=self._get_headers(),
                 timeout=self.timeout,
                 stream=stream
             )
             response.raise_for_status()
-            
+
             if stream:
                 return self._handle_streaming_response(response)
             else:
@@ -192,20 +204,46 @@ class PollinationsAPI:
                 except json.JSONDecodeError:
                     continue
     
-    def get_available_models(self) -> List[Dict[str, any]]:
+    def get_available_models(self, use_cache: bool = True) -> List[Dict[str, any]]:
         """
-        Get list of available models from API
-        
+        Get list of available models from API (dynamically fetched)
+
+        Args:
+            use_cache: If True and fetch fails, return hardcoded models
+
         Returns:
             List of model information dicts
         """
         try:
+            # Try to fetch from backend first, then new API
+            if self.use_backend:
+                api_url = f"{self.backend_url}/api/models"
+            else:
+                api_url = f"{self.new_api_url}/models"
+
             response = requests.get(
-                f"{self.base_url}/models",
+                api_url,
                 headers=self._get_headers(),
                 timeout=self.timeout
             )
             response.raise_for_status()
-            return response.json()
+            models = response.json()
+
+            # Filter out excluded models (already done by backend, but just in case)
+            excluded = {"midijourney", "openai-audio"}
+            filtered_models = [
+                model for model in models
+                if model.get("name") not in excluded
+            ]
+
+            return filtered_models
+
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to fetch models: {str(e)}")
+            if use_cache:
+                # Fallback to hardcoded models if fetch fails
+                return [
+                    {"name": name, "description": desc}
+                    for name, desc in AVAILABLE_MODELS.items()
+                ]
+            else:
+                raise Exception(f"Failed to fetch models: {str(e)}")

@@ -21,12 +21,30 @@ from .utils import (
 def handle_config_commands(args):
     """Handle configuration-related commands"""
     config = get_config()
-    
+
     if args.list_models:
         print_info("Available AI Models:\n")
-        for model, description in AVAILABLE_MODELS.items():
-            default = " (default)" if model == config.get("default_model") else ""
-            print(f"  • {model:15} - {description}{default}")
+
+        # Try to fetch models dynamically from API
+        try:
+            # Create API instance (use direct API if flag is set)
+            use_direct = getattr(args, 'direct_api', False)
+            api_temp = PollinationsAPI(use_direct_api=use_direct)
+            models = api_temp.get_available_models(use_cache=True)
+
+            for model in models:
+                name = model.get("name", "unknown")
+                # Use description if available, otherwise use name
+                description = model.get("description", name)
+                default = " (default)" if name == config.get("default_model") else ""
+                print(f"  • {name:15} - {description}{default}")
+        except Exception as e:
+            # Fallback to hardcoded models if API fetch fails
+            print(f"  (Note: Using cached models - API unavailable)\n")
+            for model, description in AVAILABLE_MODELS.items():
+                default = " (default)" if model == config.get("default_model") else ""
+                print(f"  • {model:15} - {description}{default}")
+
         return True
     
     if args.list_modes:
@@ -255,9 +273,10 @@ def main():
     # Handle config commands
     if handle_config_commands(args):
         return
-    
-    # Initialize API
-    api = PollinationsAPI()
+
+    # Initialize API (with direct API flag if specified)
+    use_direct_api = getattr(args, 'direct_api', False)
+    api = PollinationsAPI(use_direct_api=use_direct_api)
     
     # Handle interactive mode
     if args.interactive:

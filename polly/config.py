@@ -14,6 +14,8 @@ DEFAULT_CONFIG = {
     "stream": False,
     "referrer": "interzonesec.com",
     "language": "pt",  # pt, en, pt-br, portuguese, english
+    "use_backend": True,  # Use proxy backend by default
+    "backend_url": "http://92.5.99.177",  # Polly backend proxy URL
 }
 
 # Available models with descriptions
@@ -28,8 +30,11 @@ AVAILABLE_MODELS = {
 }
 
 # API Configuration
-API_BASE_URL = "https://text.pollinations.ai"
+API_BASE_URL = "https://text.pollinations.ai"  # Direct API (fallback)
 API_TIMEOUT = 30
+
+# New Pollinations API Configuration
+NEW_API_BASE_URL = "https://enter.pollinations.ai/api/generate/v1"
 
 
 class Config:

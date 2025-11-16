@@ -110,6 +110,11 @@ def create_parser() -> argparse.ArgumentParser:
         choices=["pt", "en", "pt-br", "portuguese", "english"],
         help="Language for prompts (default: pt - Portuguese)"
     )
+    params_group.add_argument(
+        "--direct-api",
+        action="store_true",
+        help="Use direct Pollinations API (bypass proxy backend)"
+    )
     
     # Output options
     output_group = parser.add_argument_group("output")
