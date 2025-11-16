@@ -15,7 +15,7 @@ DEFAULT_CONFIG = {
     "referrer": "interzonesec.com",
     "language": "pt",  # pt, en, pt-br, portuguese, english
     "use_backend": True,  # Use proxy backend by default
-    "backend_url": "http://92.5.99.177",  # Polly backend proxy URL
+    "backend_url": "https://api.interzonesec.com",  # Polly backend proxy URL
 }
 
 # Available models with descriptions
