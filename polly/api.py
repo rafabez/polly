@@ -109,6 +109,10 @@ class PollinationsAPI:
         model = model or self.config.get("default_model")
         temperature = temperature if temperature is not None else self.config.get("temperature")
 
+        # Auto-adjust temperature for models that don't support it
+        if model == "openai":
+            temperature = 1.0  # openai model only supports temperature=1.0
+
         payload = {
             "model": model,
             "messages": messages,
@@ -143,48 +147,66 @@ class PollinationsAPI:
             else:
                 data = response.json()
                 return data["choices"][0]["message"]["content"]
-                
+
         except requests.exceptions.Timeout:
             raise Exception(
                 f"⏱️  Timeout: O modelo '{model}' demorou muito para responder.\n"
-                f"💡 Tente: polly --list-models para ver outros modelos disponíveis\n"
-                f"   Ou use: --model gemini (geralmente mais rápido)"
+                f"💡 Tente: polly --list-models para ver outros modelos disponíveis"
             )
         except requests.exceptions.HTTPError as e:
             status_code = e.response.status_code if e.response else "desconhecido"
+
+            # Try to extract error message from response
+            error_detail = ""
+            try:
+                error_data = e.response.json()
+                if "detail" in error_data:
+                    # Clean up error message (remove URLs and technical details)
+                    error_detail = str(error_data["detail"])
+                    if "Pollinations API error:" in error_detail:
+                        error_detail = "Erro na API"
+            except:
+                pass
+
             if status_code == 503 or status_code == 502:
                 raise Exception(
-                    f"🔴 Serviço indisponível: O modelo '{model}' está temporariamente fora do ar.\n"
-                    f"💡 Tente outro modelo:\n"
-                    f"   polly --model gemini <sua pergunta>\n"
-                    f"   polly --model openai <sua pergunta>\n"
-                    f"   polly --list-models  # Ver todos os modelos"
+                    f"🔴 Serviço temporariamente indisponível.\n"
+                    f"💡 Tente outro modelo: polly --list-models"
                 )
             elif status_code == 429:
                 raise Exception(
-                    f"⚠️  Rate limit: Muitas requisições.\n"
+                    f"⚠️  Limite de requisições atingido.\n"
                     f"💡 Aguarde alguns segundos e tente novamente."
+                )
+            elif status_code == 500:
+                raise Exception(
+                    f"❌ Erro no servidor (modelo: {model}).\n"
+                    f"💡 Tente outro modelo: polly --list-models\n"
+                    f"   Sugestão: polly --model mistral <sua pergunta>"
                 )
             else:
                 raise Exception(
-                    f"❌ Erro HTTP {status_code}: {str(e)}\n"
+                    f"❌ Erro HTTP {status_code} ao processar requisição.\n"
                     f"💡 Tente outro modelo: polly --list-models"
                 )
         except requests.exceptions.ConnectionError:
             raise Exception(
-                f"🌐 Erro de conexão: Não foi possível conectar à API Pollinations.\n"
-                f"💡 Verifique sua conexão com a internet."
+                f"🌐 Erro de conexão com o servidor.\n"
+                f"💡 Verifique sua conexão com a internet.\n"
+                f"   Ou tente com API direta: polly --direct-api <sua pergunta>"
             )
         except requests.exceptions.RequestException as e:
+            # Don't show URLs in error messages
+            error_msg = str(e).split("url:")[0].strip()
             raise Exception(
-                f"❌ Erro na requisição: {str(e)}\n"
+                f"❌ Erro na requisição: {error_msg}\n"
                 f"💡 Tente outro modelo: polly --list-models"
             )
         except (KeyError, json.JSONDecodeError) as e:
             raise Exception(
-                f"⚠️  Resposta inválida da API: {str(e)}\n"
-                f"💡 O modelo '{model}' pode estar com problemas.\n"
-                f"   Tente: polly --model gemini (geralmente mais estável)"
+                f"⚠️  Resposta inválida da API.\n"
+                f"💡 O modelo '{model}' pode estar temporariamente com problemas.\n"
+                f"   Tente: polly --model mistral <sua pergunta>"
             )
     
     def _handle_streaming_response(self, response) -> Generator[str, None, None]:
