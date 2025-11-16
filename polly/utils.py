@@ -10,6 +10,7 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.live import Live
 from rich.spinner import Spinner
+from .i18n import get_text
 
 console = Console()
 
@@ -35,22 +36,22 @@ def print_response(text: str, format_markdown: bool = True):
 
 def print_error(message: str):
     """Print error message in red"""
-    console.print(f"[bold red]Error:[/bold red] {message}")
+    console.print(f"[bold red]{get_text('label.error')}[/bold red] {message}")
 
 
 def print_info(message: str):
     """Print info message in blue"""
-    console.print(f"[bold blue]Info:[/bold blue] {message}")
+    console.print(f"[bold blue]{get_text('label.info')}[/bold blue] {message}")
 
 
 def print_success(message: str):
     """Print success message in green"""
-    console.print(f"[bold green]✓[/bold green] {message}")
+    console.print(f"[bold green]{get_text('label.success')}[/bold green] {message}")
 
 
 def print_warning(message: str):
     """Print warning message in yellow"""
-    console.print(f"[bold yellow]Warning:[/bold yellow] {message}")
+    console.print(f"[bold yellow]{get_text('label.warning')}[/bold yellow] {message}")
 
 
 def print_code(code: str, language: str = "bash"):
@@ -91,21 +92,21 @@ def read_file(filepath: str) -> str:
     if is_pdf_file(filepath):
         content = read_pdf(filepath)
         if content is None:
-            raise Exception("Failed to extract text from PDF")
+            raise Exception(get_text("pdf.no_text"))
         return content
-    
+
     # Regular text file
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             return f.read()
     except FileNotFoundError:
-        raise Exception(f"File not found: {filepath}")
+        raise Exception(get_text("file.not_found", filepath=filepath))
     except PermissionError:
-        raise Exception(f"Permission denied: {filepath}")
+        raise Exception(get_text("file.permission", filepath=filepath))
     except UnicodeDecodeError:
-        raise Exception(f"File encoding error. PDF files are supported with --explain, --debug, etc.")
+        raise Exception(get_text("file.encoding"))
     except Exception as e:
-        raise Exception(f"Error reading file: {str(e)}")
+        raise Exception(get_text("file.read_error", str=str(e)))
 
 
 def stream_response(generator, format_markdown: bool = True):
@@ -124,7 +125,7 @@ def stream_response(generator, format_markdown: bool = True):
         console.print()  # New line at the end
         return accumulated
     except KeyboardInterrupt:
-        console.print("\n[yellow]Interrupted by user[/yellow]")
+        console.print(f"\n[yellow]{get_text('file.interrupted')}[/yellow]")
         return accumulated
 
 

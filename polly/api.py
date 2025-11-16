@@ -7,6 +7,7 @@ import json
 from typing import Optional, List, Dict, Generator
 from urllib.parse import quote
 from .config import get_config, API_BASE_URL, API_TIMEOUT, NEW_API_BASE_URL, AVAILABLE_MODELS, BACKEND_URL
+from .i18n import get_text
 
 
 class PollinationsAPI:
@@ -150,51 +151,51 @@ class PollinationsAPI:
 
         except requests.exceptions.Timeout:
             raise Exception(
-                f"⏱️  Timeout: Model '{model}' took too long to respond.\n"
-                f"💡 Try: polly --list-models to see other available models"
+                f"⏱️  {get_text('error.timeout', model=model)}\n"
+                f"💡 {get_text('error.timeout_tip')}"
             )
         except requests.exceptions.HTTPError as e:
             status_code = e.response.status_code if e.response else "unknown"
 
             if status_code == 503 or status_code == 502:
                 raise Exception(
-                    f"🔴 Service temporarily unavailable.\n"
-                    f"💡 Try another model: polly --list-models"
+                    f"🔴 {get_text('error.service_down')}\n"
+                    f"💡 {get_text('error.service_tip')}"
                 )
             elif status_code == 429:
                 raise Exception(
-                    f"⚠️  Rate limit exceeded.\n"
-                    f"💡 Wait a few seconds and try again."
+                    f"⚠️  {get_text('error.rate_limit')}\n"
+                    f"💡 {get_text('error.rate_limit_tip')}"
                 )
             elif status_code == 500:
                 raise Exception(
-                    f"❌ Server error (model: {model}).\n"
-                    f"💡 Try another model: polly --list-models\n"
-                    f"   Suggestion: polly --model mistral <your question>"
+                    f"❌ {get_text('error.server_error', model=model)}\n"
+                    f"💡 {get_text('error.server_tip')}\n"
+                    f"   {get_text('error.server_suggestion')}"
                 )
             else:
                 raise Exception(
-                    f"❌ HTTP {status_code} error.\n"
-                    f"💡 Try another model: polly --list-models"
+                    f"❌ {get_text('error.http_error', status_code=status_code)}\n"
+                    f"💡 {get_text('error.http_tip')}"
                 )
         except requests.exceptions.ConnectionError:
             raise Exception(
-                f"🌐 Connection error.\n"
-                f"💡 Check your internet connection.\n"
-                f"   Or try direct API: polly --direct-api <your question>"
+                f"🌐 {get_text('error.connection')}\n"
+                f"💡 {get_text('error.connection_tip')}\n"
+                f"   {get_text('error.connection_direct')}"
             )
         except requests.exceptions.RequestException as e:
             # Don't show URLs in error messages
             error_msg = str(e).split("url:")[0].split("URL:")[0].strip()
             raise Exception(
-                f"❌ Request error: {error_msg}\n"
-                f"💡 Try another model: polly --list-models"
+                f"❌ {get_text('error.request', error_msg=error_msg)}\n"
+                f"💡 {get_text('error.request_tip')}"
             )
         except (KeyError, json.JSONDecodeError) as e:
             raise Exception(
-                f"⚠️  Invalid API response.\n"
-                f"💡 Model '{model}' may be temporarily unavailable.\n"
-                f"   Try: polly --model mistral <your question>"
+                f"⚠️  {get_text('error.invalid_response')}\n"
+                f"💡 {get_text('error.model_unavailable', model=model)}\n"
+                f"   {get_text('error.model_suggestion')}"
             )
     
     def _handle_streaming_response(self, response) -> Generator[str, None, None]:

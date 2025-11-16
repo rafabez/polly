@@ -16,6 +16,7 @@ from .utils import (
     print_code, read_stdin, read_file, stream_response,
     show_spinner, truncate_context
 )
+from .i18n import get_text
 
 
 def handle_config_commands(args):
@@ -23,7 +24,7 @@ def handle_config_commands(args):
     config = get_config()
 
     if args.list_models:
-        print_info("Available AI Models:\n")
+        print_info(f"{get_text('msg.available_models')}\n")
 
         # Try to fetch models dynamically from API
         try:
@@ -40,49 +41,49 @@ def handle_config_commands(args):
                 print(f"  • {name:15} - {description}{default}")
         except Exception as e:
             # Fallback to hardcoded models if API fetch fails
-            print(f"  (Note: Using cached models - API unavailable)\n")
+            print(f"  ({get_text('msg.cached_models')})\n")
             for model, description in AVAILABLE_MODELS.items():
                 default = " (default)" if model == config.get("default_model") else ""
                 print(f"  • {model:15} - {description}{default}")
 
         return True
-    
+
     if args.list_modes:
-        print_info("Available Modes:\n")
+        print_info(f"{get_text('msg.available_modes')}\n")
         for mode, description in get_available_modes().items():
             print(f"  • {mode:18} - {description}")
         return True
-    
+
     if args.set_default_model:
         config.set("default_model", args.set_default_model)
         if config.save_config():
-            print_success(f"Default model set to: {args.set_default_model}")
+            print_success(f"{get_text('msg.model_set')} {args.set_default_model}")
         else:
-            print_error("Failed to save configuration")
+            print_error(get_text("msg.config_failed"))
         return True
-    
+
     if args.reset_config:
         config.reset_to_defaults()
-        print_success("Configuration reset to defaults")
+        print_success(get_text("msg.config_reset"))
         return True
-    
+
     if args.set_language:
         config.set("language", args.set_language)
         if config.save_config():
-            print_success(f"Default language set to: {args.set_language}")
+            print_success(f"{get_text('msg.language_set')} {args.set_language}")
         else:
-            print_error("Failed to save configuration")
+            print_error(get_text("msg.config_failed"))
         return True
-    
+
     if args.config:
         config_file = config.config_file
         if config_file.exists():
-            print_info(f"Configuration file: {config_file}")
-            print(f"\nCurrent configuration:")
+            print_info(f"{get_text('msg.config_file')} {config_file}")
+            print(f"\n{get_text('msg.current_config')}:")
             for key, value in config.config.items():
                 print(f"  {key}: {value}")
         else:
-            print_info(f"No configuration file found. Creating default at: {config_file}")
+            print_info(f"{get_text('msg.no_config')} {config_file}")
             config.save_config()
         return True
     
@@ -91,45 +92,45 @@ def handle_config_commands(args):
 
 def handle_interactive_mode(api: PollinationsAPI, args):
     """Handle interactive chat mode"""
-    print_info("Interactive mode - Type 'exit' or 'quit' to end, 'clear' to reset context\n")
-    
+    print_info(f"{get_text('msg.interactive_help')}\n")
+
     config = get_config()
     model = args.model or config.get("default_model")
     temperature = args.temperature if args.temperature is not None else config.get("temperature")
     language = getattr(args, 'prompt_language', None) or config.get("language", "pt")
-    
+
     # Initialize conversation with system message
     system_prompt, _ = get_prompt("interactive", language=language)
     messages = [{"role": "system", "content": system_prompt}]
-    
+
     print(f"[Model: {model}, Temperature: {temperature}]\n")
-    
+
     while True:
         try:
             # Get user input
-            user_input = input("You: ").strip()
-            
+            user_input = input(f"{get_text('msg.you')} ").strip()
+
             if not user_input:
                 continue
-            
+
             if user_input.lower() in ["exit", "quit"]:
-                print_info("Goodbye!")
+                print_info(get_text("msg.goodbye"))
                 break
-            
+
             if user_input.lower() == "clear":
                 messages = [{"role": "system", "content": system_prompt}]
-                print_success("Context cleared")
+                print_success(get_text("msg.context_cleared"))
                 continue
-            
+
             # Add user message
             messages.append({"role": "user", "content": user_input})
-            
+
             # Truncate context if needed (Pollinations has small context window)
             messages = truncate_context(messages, max_chars=5000)
-            
+
             # Get response
-            print("\nPolly: ", end="")
-            
+            print(f"\n{get_text('msg.polly')} ", end="")
+
             if args.stream:
                 response = api.chat_completion(
                     messages=messages,
@@ -143,7 +144,7 @@ def handle_interactive_mode(api: PollinationsAPI, args):
                     assistant_message += chunk
                 print("\n")
             else:
-                with show_spinner("Thinking..."):
+                with show_spinner(get_text("msg.thinking")):
                     response = api.chat_completion(
                         messages=messages,
                         model=model,
@@ -152,13 +153,13 @@ def handle_interactive_mode(api: PollinationsAPI, args):
                     )
                 print_response(response, format_markdown=not args.no_markdown)
                 assistant_message = response
-            
+
             # Add assistant response to history
             messages.append({"role": "assistant", "content": assistant_message})
-            
+
         except KeyboardInterrupt:
             print("\n")
-            print_info("Goodbye!")
+            print_info(get_text("msg.goodbye"))
             break
         except Exception as e:
             print_error(str(e))
@@ -226,10 +227,10 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
             try:
                 with open(args.output, 'w', encoding='utf-8') as f:
                     f.write(result)
-                print_success(f"Response saved to: {args.output}")
+                print_success(f"{get_text('msg.response_saved')} {args.output}")
             except Exception as e:
-                print_error(f"Failed to save output: {str(e)}")
-        
+                print_error(f"{get_text('msg.failed_save')} {str(e)}")
+
         # Save as PDF if requested
         if args.pdf:
             from .pdf_handler import write_pdf
@@ -237,7 +238,7 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
             if write_pdf(result, args.pdf, title=title):
                 pass  # Success message printed by write_pdf
             else:
-                print_error("Failed to save PDF")
+                print_error(get_text("msg.failed_pdf"))
         
         # JSON output
         if args.json:
@@ -335,7 +336,7 @@ def main():
     
     # Check if content is required (motivational mode doesn't need it)
     if not content and not args.motivational:
-        print_error("No input provided")
+        print_error(get_text("msg.no_input"))
         sys.exit(1)
     
     # Handle the query
