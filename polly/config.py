@@ -9,7 +9,7 @@ from typing import Dict, Any
 
 # Default configuration
 DEFAULT_CONFIG = {
-    "default_model": "mistral",  # Changed from gemini due to Pollinations API bug
+    "default_model": "openai-large",  # Most capable and reliable model
     "temperature": 0.7,
     "stream": False,
     "referrer": "interzonesec.com",
@@ -18,15 +18,15 @@ DEFAULT_CONFIG = {
     "backend_url": "https://api.interzonesec.com",  # Polly backend proxy URL
 }
 
-# Available models with descriptions
+# Available models with descriptions (ordered by reliability)
 AVAILABLE_MODELS = {
-    "mistral": "Mistral Small 3.2 24B - Balanced performance (default)",
+    "openai-large": "OpenAI GPT-4.1 - Most capable (default)",
+    "mistral": "Mistral Small 3.2 24B - Balanced performance",
     "deepseek": "DeepSeek V3.1 - Advanced reasoning model",
     "qwen-coder": "Qwen 2.5 Coder 32B - Specialized for coding",
-    "gemini": "Gemini 2.5 Flash Lite - Fast and capable",
+    "openai": "OpenAI GPT-5 Nano - Fast (temperature=1.0 only)",
+    "gemini": "Gemini 2.5 Flash Lite - Fast (currently unstable)",
     "gemini-search": "Gemini 2.5 Flash Lite with Google Search",
-    "openai": "OpenAI GPT-5 Nano - Fast and efficient",
-    "openai-large": "OpenAI GPT-4.1 - Most capable",
 }
 
 # API Configuration
