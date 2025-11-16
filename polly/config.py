@@ -9,7 +9,7 @@ from typing import Dict, Any
 
 # Default configuration
 DEFAULT_CONFIG = {
-    "default_model": "gemini",
+    "default_model": "mistral",  # Changed from gemini due to Pollinations API bug
     "temperature": 0.7,
     "stream": False,
     "referrer": "interzonesec.com",
@@ -20,13 +20,13 @@ DEFAULT_CONFIG = {
 
 # Available models with descriptions
 AVAILABLE_MODELS = {
+    "mistral": "Mistral Small 3.2 24B - Balanced performance (default)",
     "deepseek": "DeepSeek V3.1 - Advanced reasoning model",
-    "gemini": "Gemini 2.5 Flash Lite - Fast and capable (default)",
+    "qwen-coder": "Qwen 2.5 Coder 32B - Specialized for coding",
+    "gemini": "Gemini 2.5 Flash Lite - Fast and capable",
     "gemini-search": "Gemini 2.5 Flash Lite with Google Search",
     "openai": "OpenAI GPT-5 Nano - Fast and efficient",
     "openai-large": "OpenAI GPT-4.1 - Most capable",
-    "qwen-coder": "Qwen 2.5 Coder 32B - Specialized for coding",
-    "mistral": "Mistral Small 3.2 24B - Balanced performance",
 }
 
 # API Configuration
