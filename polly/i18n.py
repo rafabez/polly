@@ -9,7 +9,7 @@ from typing import Dict
 TRANSLATIONS = {
     "en": {
         # Help text
-        "help.title": "Polly - Cross-Platform AI Terminal Assistant",
+        "help.title": "Polly - Cross-Platform LLM CLI Assistant",
         "help.powered_by": "Powered by Pollinations.ai",
         "help.usage": "USAGE",
         "help.modes": "MODES",
@@ -139,7 +139,7 @@ TRANSLATIONS = {
 
     "pt": {
         # Help text
-        "help.title": "Polly - Assistente de IA Cross-Platform para Terminal",
+        "help.title": "Polly - Assistente LLM CLI Cross-Platform",
         "help.powered_by": "Powered by Pollinations.ai",
         "help.usage": "USO",
         "help.modes": "MODOS",
