@@ -47,7 +47,7 @@ TRANSLATIONS = {
         # Configuration
         "config.view": "View/open configuration file",
         "config.set_model": "Set default model",
-        "config.set_language": "Set default prompt language",
+        "config.set_language": "Set default prompt language (en/pt)",
         "config.reset": "Reset to default configuration",
 
         # Information
@@ -177,7 +177,7 @@ TRANSLATIONS = {
         # Configuration
         "config.view": "Ver/abrir arquivo de configuração",
         "config.set_model": "Define modelo padrão",
-        "config.set_language": "Define idioma padrão dos prompts",
+        "config.set_language": "Define idioma padrão dos prompts (en/pt)",
         "config.reset": "Reseta para configuração padrão",
 
         # Information
