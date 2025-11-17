@@ -29,7 +29,7 @@ TRANSLATIONS = {
         "mode.translate": "Translate text to language",
         "mode.translate_file": "Translate file to language",
         "mode.interactive": "Interactive chat mode",
-        "mode.motivational": "Funny demotivational phrase 😄",
+        "mode.motivational": "Funny demotivational phrase",
 
         # Parameters
         "param.model": "Select AI model",
@@ -116,7 +116,7 @@ TRANSLATIONS = {
         "label.error": "Error:",
         "label.info": "Info:",
         "label.warning": "Warning:",
-        "label.success": "✓",
+        "label.success": "[OK]",
 
         # PDF messages
         "pdf.pypdf_missing": "pypdf not installed. Install with: pip install pypdf",
@@ -159,7 +159,7 @@ TRANSLATIONS = {
         "mode.translate": "Traduz texto para idioma",
         "mode.translate_file": "Traduz arquivo para idioma",
         "mode.interactive": "Modo chat interativo",
-        "mode.motivational": "Frase desmotivacional engraçada 😄",
+        "mode.motivational": "Funny demotivational phrase",
 
         # Parameters
         "param.model": "Seleciona modelo de IA",
@@ -246,7 +246,7 @@ TRANSLATIONS = {
         "label.error": "Erro:",
         "label.info": "Info:",
         "label.warning": "Aviso:",
-        "label.success": "✓",
+        "label.success": "[OK]",
 
         # PDF messages
         "pdf.pypdf_missing": "pypdf não instalado. Instale com: pip install pypdf",
