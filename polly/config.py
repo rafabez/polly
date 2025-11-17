@@ -3,9 +3,21 @@ Configuration management for Polly
 """
 
 import os
+import platform
 import yaml
 from pathlib import Path
 from typing import Dict, Any
+
+
+def detect_os() -> str:
+    """
+    Detect the current operating system.
+
+    Returns:
+        str: Operating system name in lowercase (e.g., 'linux', 'darwin', 'windows')
+    """
+    return platform.system().lower()
+
 
 # Default configuration
 DEFAULT_CONFIG = {
@@ -15,6 +27,7 @@ DEFAULT_CONFIG = {
     "referrer": "interzonesec.com",
     "language": "pt",  # pt, en, pt-br, portuguese, english
     "use_backend": True,  # Use proxy backend by default
+    "os": "auto",  # Operating system: auto, linux, darwin, windows
 }
 
 # Backend URL (hardcoded - not user-configurable)
@@ -80,7 +93,22 @@ class Config:
     def set(self, key: str, value: Any):
         """Set configuration value"""
         self.config[key] = value
-    
+
+    def get_effective_os(self) -> str:
+        """
+        Get the effective operating system.
+
+        Resolves "auto" to the actual detected OS. Ensures backwards compatibility
+        by defaulting to "auto" if the os field doesn't exist in the config.
+
+        Returns:
+            str: Operating system name in lowercase (e.g., 'linux', 'darwin', 'windows')
+        """
+        os_value = self.config.get("os", "auto")
+        if os_value == "auto":
+            return detect_os()
+        return os_value
+
     def reset_to_defaults(self):
         """Reset configuration to defaults"""
         self.config = DEFAULT_CONFIG.copy()

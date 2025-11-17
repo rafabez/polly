@@ -48,6 +48,7 @@ TRANSLATIONS = {
         "config.view": "View/open configuration file",
         "config.set_model": "Set default model",
         "config.set_language": "Set default prompt language (en/pt)",
+        "config.set_os": "Set default OS for command generation (linux/macos/windows/auto)",
         "config.reset": "Reset to default configuration",
 
         # Information
@@ -66,6 +67,9 @@ TRANSLATIONS = {
         "example.basic": "Basic question",
         "example.explain": "Explain code",
         "example.command": "Generate command",
+        "example.command_linux": "Generate Linux command",
+        "example.command_macos": "Generate macOS command",
+        "example.command_windows": "Generate Windows command",
         "example.debug": "Debug error",
         "example.model": "Use specific model",
 
@@ -90,6 +94,9 @@ TRANSLATIONS = {
         "msg.failed_pdf": "Failed to save PDF",
         "msg.no_input": "No input provided",
         "msg.thinking": "Thinking...",
+        "msg.os_set": "Default OS set to:",
+        "msg.os_detected": "OS detected:",
+        "msg.os_current": "Current OS setting:",
 
         # Error messages (from api.py)
         "error.timeout": "Timeout: Model '{model}' took too long to respond.",
@@ -111,6 +118,12 @@ TRANSLATIONS = {
         "error.invalid_response": "Invalid API response.",
         "error.model_unavailable": "Model '{model}' may be temporarily unavailable.",
         "error.model_suggestion": "Try: polly --model mistral <your question>",
+
+        # OS names
+        "os.linux": "Linux",
+        "os.macos": "macOS",
+        "os.windows": "Windows",
+        "os.auto": "Auto-detect",
 
         # Utility messages
         "label.error": "Error:",
@@ -178,6 +191,7 @@ TRANSLATIONS = {
         "config.view": "Ver/abrir arquivo de configuração",
         "config.set_model": "Define modelo padrão",
         "config.set_language": "Define idioma padrão dos prompts (en/pt)",
+        "config.set_os": "Define OS padrão para geração de comandos (linux/macos/windows/auto)",
         "config.reset": "Reseta para configuração padrão",
 
         # Information
@@ -196,6 +210,9 @@ TRANSLATIONS = {
         "example.basic": "Pergunta básica",
         "example.explain": "Explicar código",
         "example.command": "Gerar comando",
+        "example.command_linux": "Gerar comando Linux",
+        "example.command_macos": "Gerar comando macOS",
+        "example.command_windows": "Gerar comando Windows",
         "example.debug": "Debugar erro",
         "example.model": "Usar modelo específico",
 
@@ -220,6 +237,9 @@ TRANSLATIONS = {
         "msg.failed_pdf": "Falha ao salvar PDF",
         "msg.no_input": "Nenhuma entrada fornecida",
         "msg.thinking": "Pensando...",
+        "msg.os_set": "OS padrão definido para:",
+        "msg.os_detected": "OS detectado:",
+        "msg.os_current": "Configuração atual de OS:",
 
         # Error messages
         "error.timeout": "Timeout: O modelo '{model}' demorou muito para responder.",
@@ -241,6 +261,12 @@ TRANSLATIONS = {
         "error.invalid_response": "Resposta inválida da API.",
         "error.model_unavailable": "Modelo '{model}' pode estar temporariamente indisponível.",
         "error.model_suggestion": "Tente: polly --model mistral <sua pergunta>",
+
+        # OS names
+        "os.linux": "Linux",
+        "os.macos": "macOS",
+        "os.windows": "Windows",
+        "os.auto": "Auto-detectar",
 
         # Utility messages
         "label.error": "Erro:",

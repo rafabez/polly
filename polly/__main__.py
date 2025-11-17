@@ -75,6 +75,30 @@ def handle_config_commands(args):
             print_error(get_text("msg.config_failed"))
         return True
 
+    if args.set_os:
+        config.set("os", args.set_os)
+        if config.save_config():
+            print_success(f"{get_text('msg.os_set')} {args.set_os}")
+        else:
+            print_error(get_text("msg.config_failed"))
+        return True
+
+    if args.show_os:
+        from .config import detect_os
+        detected_os = detect_os()
+        configured_os = config.get("os", "auto")
+        effective_os = config.get_effective_os()
+
+        # Normalize darwin to macos for display
+        display_detected = "macos" if detected_os == "darwin" else detected_os
+        display_effective = "macos" if effective_os == "darwin" else effective_os
+
+        print_info(f"{get_text('msg.os_detected')} {display_detected}")
+        print_info(f"{get_text('msg.os_current')} {configured_os}")
+        if configured_os == "auto":
+            print_info(f"  → Effective: {display_effective}")
+        return True
+
     if args.config:
         config_file = config.config_file
         if config_file.exists():
@@ -98,9 +122,10 @@ def handle_interactive_mode(api: PollinationsAPI, args):
     model = args.model or config.get("default_model")
     temperature = args.temperature if args.temperature is not None else config.get("temperature")
     language = getattr(args, 'prompt_language', None) or config.get("language", "pt")
+    os_type = config.get_effective_os()
 
     # Initialize conversation with system message
-    system_prompt, _ = get_prompt("interactive", language=language)
+    system_prompt, _ = get_prompt("interactive", language=language, os_type=os_type)
     messages = [{"role": "system", "content": system_prompt}]
 
     print(f"[Model: {model}, Temperature: {temperature}]\n")
@@ -171,20 +196,21 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
     model = args.model or config.get("default_model")
     temperature = args.temperature if args.temperature is not None else config.get("temperature")
     language = getattr(args, 'prompt_language', None) or config.get("language", "pt")
-    
+    os_type = config.get_effective_os()
+
     # Generate random seed for motivational mode to get different responses
     seed = random.randint(1, 1000000) if mode == "motivational" else None
-    
+
     # Get prompt based on mode
     if mode == "translate":
         # Get target language from either -t or -tf
         target_lang = args.translate if args.translate else args.translate_file[0]
-        system_prompt, user_prompt = get_prompt(mode, content, language=language, target_language=target_lang)
+        system_prompt, user_prompt = get_prompt(mode, content, language=language, target_language=target_lang, os_type=os_type)
     elif mode == "command" and hasattr(args, 'command_versions') and args.command_versions > 1:
         # Command mode with multiple versions
-        system_prompt, user_prompt = get_prompt(mode, content, language=language, num_versions=args.command_versions)
+        system_prompt, user_prompt = get_prompt(mode, content, language=language, num_versions=args.command_versions, os_type=os_type)
     else:
-        system_prompt, user_prompt = get_prompt(mode, content, language=language)
+        system_prompt, user_prompt = get_prompt(mode, content, language=language, os_type=os_type)
     
     # Prepare messages for chat completion
     messages = [
