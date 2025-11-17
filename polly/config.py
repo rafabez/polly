@@ -3,6 +3,7 @@ Configuration management for Polly
 """
 
 import os
+import locale
 import platform
 import yaml
 from pathlib import Path
@@ -19,13 +20,84 @@ def detect_os() -> str:
     return platform.system().lower()
 
 
+def detect_language() -> str:
+    """
+    Detect system language from locale.
+
+    Returns:
+        str: Language code ('pt' for Portuguese variants, 'en' for others)
+    """
+    try:
+        lang_code, _ = locale.getdefaultlocale()
+        if lang_code:
+            # Check if Portuguese variant (pt, pt_BR, pt_PT, etc.)
+            if lang_code.lower().startswith('pt'):
+                return 'pt'
+        return 'en'  # Default to English
+    except Exception:
+        return 'en'  # Fallback to English on any error
+
+
+def normalize_os(os_value: str) -> str:
+    """
+    Normalize OS value to a standard internal format.
+
+    Converts case-insensitive input to lowercase and maps 'macos' to 'darwin'
+    (since that's what platform.system() returns on macOS).
+
+    Args:
+        os_value: OS value (case-insensitive). Accepted formats:
+            - 'auto' - Auto-detect OS
+            - 'linux' - Linux (case-insensitive)
+            - 'macos'/'darwin' - macOS (case-insensitive, converts to 'darwin')
+            - 'windows' - Windows (case-insensitive)
+
+    Returns:
+        str: Normalized OS value ('auto', 'linux', 'darwin', 'windows')
+
+    Raises:
+        ValueError: If OS value is not recognized
+
+    Examples:
+        >>> normalize_os('LINUX')
+        'linux'
+        >>> normalize_os('MacOS')
+        'darwin'
+        >>> normalize_os('windows')
+        'windows'
+        >>> normalize_os('AUTO')
+        'auto'
+        >>> normalize_os('DARWIN')  # Darwin is also accepted
+        'darwin'
+    """
+    if not isinstance(os_value, str):
+        raise ValueError(f"OS value must be a string, got {type(os_value).__name__}")
+
+    # Normalize to lowercase
+    normalized = os_value.lower().strip()
+
+    # Map macos to darwin (internal representation)
+    if normalized == "macos":
+        return "darwin"
+
+    # Validate against allowed values
+    allowed_values = {"auto", "linux", "darwin", "windows"}
+    if normalized not in allowed_values:
+        raise ValueError(
+            f"Invalid OS: '{os_value}'. "
+            f"Allowed values (case-insensitive): auto, linux, macos, darwin, windows"
+        )
+
+    return normalized
+
+
 # Default configuration
 DEFAULT_CONFIG = {
     "default_model": "openai-large",  # Most capable and reliable model
     "temperature": 0.7,
     "stream": False,
     "referrer": "interzonesec.com",
-    "language": "pt",  # pt, en, pt-br, portuguese, english
+    "language": "auto",  # auto (detect from locale), pt, en, pt-br, portuguese, english
     "use_backend": True,  # Use proxy backend by default
     "os": "auto",  # Operating system: auto, linux, darwin, windows
 }
@@ -46,7 +118,7 @@ AVAILABLE_MODELS = {
 
 # API Configuration
 API_BASE_URL = "https://text.pollinations.ai"  # Direct API (fallback)
-API_TIMEOUT = 30
+API_TIMEOUT = 90  # Request timeout (90s - API can be slow)
 
 # New Pollinations API Configuration
 NEW_API_BASE_URL = "https://enter.pollinations.ai/api/generate/v1"
@@ -98,16 +170,53 @@ class Config:
         """
         Get the effective operating system.
 
-        Resolves "auto" to the actual detected OS. Ensures backwards compatibility
-        by defaulting to "auto" if the os field doesn't exist in the config.
+        Resolves "auto" to the actual detected OS. Normalizes the OS value to
+        handle case-insensitive input and map 'macos' to 'darwin'. Ensures
+        backwards compatibility by defaulting to "auto" if the os field doesn't
+        exist in the config.
 
         Returns:
             str: Operating system name in lowercase (e.g., 'linux', 'darwin', 'windows')
         """
         os_value = self.config.get("os", "auto")
-        if os_value == "auto":
+        # Normalize the OS value to handle case-insensitive input
+        try:
+            normalized = normalize_os(os_value)
+        except ValueError:
+            # Fallback to "auto" if normalization fails
+            print(f"Warning: Invalid OS '{os_value}', using 'auto'")
+            normalized = "auto"
+
+        if normalized == "auto":
             return detect_os()
-        return os_value
+        return normalized
+
+    def get_effective_language(self) -> str:
+        """
+        Get the effective language.
+
+        Resolves "auto" to the detected system language from locale.
+        Also normalizes variant language codes to standard codes.
+        Ensures backwards compatibility by defaulting to "auto" if the
+        language field doesn't exist in the config.
+
+        Returns:
+            str: Language code ('pt' or 'en')
+        """
+        lang_value = self.config.get("language", "auto")
+
+        # Handle "auto" detection
+        if lang_value == "auto":
+            return detect_language()
+
+        # Normalize language variants
+        if lang_value in ["pt-br", "pt_br", "portuguese"]:
+            return "pt"
+        elif lang_value in ["english"]:
+            return "en"
+
+        # Return as-is if it's already a valid code
+        return lang_value
 
     def reset_to_defaults(self):
         """Reset configuration to defaults"""

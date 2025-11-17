@@ -48,7 +48,8 @@ TRANSLATIONS = {
         "config.view": "View/open configuration file",
         "config.set_model": "Set default model",
         "config.set_language": "Set default prompt language (en/pt)",
-        "config.set_os": "Set default OS for command generation (linux/macos/windows/auto)",
+        "config.set_os": "Set target OS for commands (auto/linux/macos/windows)",
+        "config.show_os": "Show detected and configured OS",
         "config.reset": "Reset to default configuration",
 
         # Information
@@ -191,7 +192,8 @@ TRANSLATIONS = {
         "config.view": "Ver/abrir arquivo de configuração",
         "config.set_model": "Define modelo padrão",
         "config.set_language": "Define idioma padrão dos prompts (en/pt)",
-        "config.set_os": "Define OS padrão para geração de comandos (linux/macos/windows/auto)",
+        "config.set_os": "Definir OS alvo para comandos (auto/linux/macos/windows)",
+        "config.show_os": "Mostrar OS detectado e configurado",
         "config.reset": "Reseta para configuração padrão",
 
         # Information
@@ -301,7 +303,7 @@ def get_text(key: str, lang: str = None, **kwargs) -> str:
 
     Args:
         key: Translation key (e.g., "error.timeout")
-        lang: Language code ('en' or 'pt'). If None, uses config language.
+        lang: Language code ('en' or 'pt'). If None, uses config language (with auto-detection).
         **kwargs: Format parameters for the translation string
 
     Returns:
@@ -313,7 +315,7 @@ def get_text(key: str, lang: str = None, **kwargs) -> str:
     # Determine language
     if lang is None:
         config = get_config()
-        lang = config.get("language", "pt")
+        lang = config.get_effective_language()
 
     # Normalize language code
     if lang in ["pt-br", "portuguese"]:

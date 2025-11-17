@@ -2,11 +2,12 @@
 Prompt templates for different Polly modes
 """
 
-# OS-specific shell names mapping
+# OS-specific shell names mapping (using lowercase keys to match internal format)
+# The keys match the normalized OS values returned by normalize_os()
 OS_SHELL_NAMES = {
-    "Linux": "Linux/bash",
-    "Darwin": "macOS/bash/zsh",  # Darwin is the system name for macOS
-    "Windows": "Windows/PowerShell/CMD"
+    "linux": "Linux/bash",
+    "darwin": "macOS/bash/zsh",  # Darwin is the internal name for macOS
+    "windows": "Windows/PowerShell/CMD"
 }
 
 PROMPTS_EN = {
@@ -121,25 +122,25 @@ def get_prompt(mode: str, content: str = "", language: str = "pt", os_type: str 
         mode: The prompt mode (explain, command, debug, etc.)
         content: The user's content/question
         language: Language for prompts (pt, en, pt-br, portuguese, english)
-        os_type: Operating system type (linux, darwin, macos, windows) - default is linux
+        os_type: Operating system type (linux, darwin, windows) - normalized lowercase format
         **kwargs: Additional template variables (e.g., num_versions for command mode)
 
     Returns:
         Tuple of (system_prompt, user_prompt)
+
+    Note:
+        The os_type parameter should be in normalized format (lowercase: 'linux', 'darwin', 'windows').
+        This matches the output from normalize_os() and platform.system().lower().
     """
     # Get prompts for the specified language, default to Portuguese
     lang_key = language.lower()
     prompts = AVAILABLE_LANGUAGES.get(lang_key, PROMPTS_PT)
 
-    # Normalize OS type to match OS_SHELL_NAMES keys
-    # Convert lowercase to capitalized, and macos to Darwin
+    # Normalize OS type - expect lowercase format from normalize_os() or detect_os()
     os_normalized = os_type.lower()
-    if os_normalized == "macos":
-        os_normalized = "darwin"
-    os_key = os_normalized.capitalize()
 
-    # Get shell name based on OS type
-    shell_name = OS_SHELL_NAMES.get(os_key, "Linux/bash")
+    # Get shell name based on OS type (OS_SHELL_NAMES uses lowercase keys)
+    shell_name = OS_SHELL_NAMES.get(os_normalized, "Linux/bash")
     kwargs["shell_name"] = shell_name
 
     prompt_config = prompts.get(mode, prompts["default"])

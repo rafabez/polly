@@ -166,8 +166,7 @@ def create_parser() -> argparse.ArgumentParser:
     config_group.add_argument(
         "--set-os",
         metavar="OS",
-        choices=["auto", "linux", "macos", "windows"],
-        help="Set default OS for command generation"
+        help="Set default OS for command generation (auto, linux, macos, windows - case-insensitive)"
     )
     config_group.add_argument(
         "--show-os",

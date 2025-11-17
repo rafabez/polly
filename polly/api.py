@@ -73,7 +73,7 @@ class PollinationsAPI:
                 url,
                 params=params,
                 headers=self._get_headers(),
-                timeout=self.timeout,
+                timeout=None if stream else self.timeout,
                 stream=stream
             )
             response.raise_for_status()
@@ -138,7 +138,7 @@ class PollinationsAPI:
                 api_url,
                 json=payload,
                 headers=self._get_headers(),
-                timeout=self.timeout,
+                timeout=None if stream else self.timeout,
                 stream=stream
             )
             response.raise_for_status()
@@ -235,7 +235,7 @@ class PollinationsAPI:
             response = requests.get(
                 api_url,
                 headers=self._get_headers(),
-                timeout=self.timeout
+                timeout=10  # Short timeout for fast model list fetch
             )
             response.raise_for_status()
             models = response.json()

@@ -76,11 +76,19 @@ def handle_config_commands(args):
         return True
 
     if args.set_os:
-        config.set("os", args.set_os)
-        if config.save_config():
-            print_success(f"{get_text('msg.os_set')} {args.set_os}")
-        else:
-            print_error(get_text("msg.config_failed"))
+        from .config import normalize_os
+        try:
+            # Normalize the OS value (handles case-insensitive input)
+            normalized_os = normalize_os(args.set_os)
+            config.set("os", normalized_os)
+            if config.save_config():
+                # Display normalized value and show user-friendly format
+                display_os = "macos" if normalized_os == "darwin" else normalized_os
+                print_success(f"{get_text('msg.os_set')} {display_os}")
+            else:
+                print_error(get_text("msg.config_failed"))
+        except ValueError as e:
+            print_error(str(e))
         return True
 
     if args.show_os:
@@ -121,7 +129,7 @@ def handle_interactive_mode(api: PollinationsAPI, args):
     config = get_config()
     model = args.model or config.get("default_model")
     temperature = args.temperature if args.temperature is not None else config.get("temperature")
-    language = getattr(args, 'prompt_language', None) or config.get("language", "pt")
+    language = getattr(args, 'prompt_language', None) or config.get_effective_language()
     os_type = config.get_effective_os()
 
     # Initialize conversation with system message
@@ -195,7 +203,7 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
     config = get_config()
     model = args.model or config.get("default_model")
     temperature = args.temperature if args.temperature is not None else config.get("temperature")
-    language = getattr(args, 'prompt_language', None) or config.get("language", "pt")
+    language = getattr(args, 'prompt_language', None) or config.get_effective_language()
     os_type = config.get_effective_os()
 
     # Generate random seed for motivational mode to get different responses
