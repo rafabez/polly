@@ -35,10 +35,16 @@ def handle_config_commands(args):
 
             for model in models:
                 name = model.get("name", "unknown")
-                # Use description if available, otherwise use name
-                description = model.get("description", name)
+                description = model.get("description", "")
                 default = " (default)" if name == config.get("default_model") else ""
-                print(f"  • {name:15} - {description}{default}")
+
+                # Filter out placeholder/unknown descriptions
+                # Show description only if it's valid (not empty, not same as name, not containing "unknown")
+                if description and description != name and "unknown" not in description.lower():
+                    print(f"  • {name:15} - {description}{default}")
+                else:
+                    # Just show the model name when description is not available
+                    print(f"  • {name}{default}")
         except Exception as e:
             # Fallback to hardcoded models if API fetch fails
             print(f"  ({get_text('msg.cached_models')})\n")
