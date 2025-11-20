@@ -6,15 +6,20 @@ import requests
 import json
 from typing import Optional, List, Dict, Generator
 from urllib.parse import quote
-from .config import get_config, API_BASE_URL, API_TIMEOUT
+from .config import get_config, API_BASE_URL, API_TIMEOUT, NEW_API_BASE_URL, AVAILABLE_MODELS, BACKEND_URL
+from .i18n import get_text
 
 
 class PollinationsAPI:
     """Client for Pollinations.ai Text Generation API"""
-    
-    def __init__(self):
+
+    def __init__(self, use_direct_api: bool = False):
         self.config = get_config()
-        self.base_url = API_BASE_URL
+        self.use_direct_api = use_direct_api
+        self.use_backend = self.config.get("use_backend", True) and not use_direct_api
+        self.backend_url = BACKEND_URL  # Hardcoded backend URL
+        self.base_url = API_BASE_URL  # Old API (fallback)
+        self.new_api_url = NEW_API_BASE_URL  # New direct API
         self.timeout = API_TIMEOUT
         self.referrer = self.config.get("referrer", "interzonesec.com")
     
@@ -68,7 +73,7 @@ class PollinationsAPI:
                 url,
                 params=params,
                 headers=self._get_headers(),
-                timeout=self.timeout,
+                timeout=None if stream else self.timeout,
                 stream=stream
             )
             response.raise_for_status()
@@ -91,88 +96,106 @@ class PollinationsAPI:
     ) -> str:
         """
         OpenAI-compatible chat completion for conversations
-        
+
         Args:
             messages: List of message dicts with 'role' and 'content'
             model: AI model to use
             temperature: Creativity level 0.0-3.0
             seed: Random seed for reproducible/varied responses
             stream: Enable streaming response
-        
+
         Returns:
             The AI's response as a string
         """
         model = model or self.config.get("default_model")
         temperature = temperature if temperature is not None else self.config.get("temperature")
-        
+
+        # Auto-adjust temperature for models that don't support it
+        if model == "openai":
+            temperature = 1.0  # openai model only supports temperature=1.0
+
         payload = {
             "model": model,
             "messages": messages,
             "temperature": temperature,
             "stream": stream
         }
-        
+
         # Add seed if provided (for varied responses in motivational mode)
         if seed is not None:
             payload["seed"] = seed
-        
+
+        # Determine which API to use
+        if self.use_backend:
+            # Use proxy backend (default)
+            api_url = f"{self.backend_url}/api/chat/completions"
+        else:
+            # Use old direct API as fallback
+            api_url = f"{self.base_url}/openai"
+
         try:
             response = requests.post(
-                f"{self.base_url}/openai",
+                api_url,
                 json=payload,
                 headers=self._get_headers(),
-                timeout=self.timeout,
+                timeout=None if stream else self.timeout,
                 stream=stream
             )
             response.raise_for_status()
-            
+
             if stream:
                 return self._handle_streaming_response(response)
             else:
                 data = response.json()
                 return data["choices"][0]["message"]["content"]
-                
+
         except requests.exceptions.Timeout:
             raise Exception(
-                f"⏱️  Timeout: O modelo '{model}' demorou muito para responder.\n"
-                f"💡 Tente: polly --list-models para ver outros modelos disponíveis\n"
-                f"   Ou use: --model gemini (geralmente mais rápido)"
+                f"⏱️  {get_text('error.timeout', model=model)}\n"
+                f"💡 {get_text('error.timeout_tip')}"
             )
         except requests.exceptions.HTTPError as e:
-            status_code = e.response.status_code if e.response else "desconhecido"
+            status_code = e.response.status_code if e.response else "unknown"
+
             if status_code == 503 or status_code == 502:
                 raise Exception(
-                    f"🔴 Serviço indisponível: O modelo '{model}' está temporariamente fora do ar.\n"
-                    f"💡 Tente outro modelo:\n"
-                    f"   polly --model gemini <sua pergunta>\n"
-                    f"   polly --model openai <sua pergunta>\n"
-                    f"   polly --list-models  # Ver todos os modelos"
+                    f"🔴 {get_text('error.service_down')}\n"
+                    f"💡 {get_text('error.service_tip')}"
                 )
             elif status_code == 429:
                 raise Exception(
-                    f"⚠️  Rate limit: Muitas requisições.\n"
-                    f"💡 Aguarde alguns segundos e tente novamente."
+                    f"⚠️  {get_text('error.rate_limit')}\n"
+                    f"💡 {get_text('error.rate_limit_tip')}"
+                )
+            elif status_code == 500:
+                raise Exception(
+                    f"❌ {get_text('error.server_error', model=model)}\n"
+                    f"💡 {get_text('error.server_tip')}\n"
+                    f"   {get_text('error.server_suggestion')}"
                 )
             else:
                 raise Exception(
-                    f"❌ Erro HTTP {status_code}: {str(e)}\n"
-                    f"💡 Tente outro modelo: polly --list-models"
+                    f"❌ {get_text('error.http_error', status_code=status_code)}\n"
+                    f"💡 {get_text('error.http_tip')}"
                 )
         except requests.exceptions.ConnectionError:
             raise Exception(
-                f"🌐 Erro de conexão: Não foi possível conectar à API Pollinations.\n"
-                f"💡 Verifique sua conexão com a internet."
+                f"🌐 {get_text('error.connection')}\n"
+                f"💡 {get_text('error.connection_tip')}\n"
+                f"   {get_text('error.connection_direct')}"
             )
         except requests.exceptions.RequestException as e:
+            # Don't show URLs in error messages
+            error_msg = str(e).split("url:")[0].split("URL:")[0].strip()
             raise Exception(
-                f"❌ Erro na requisição: {str(e)}\n"
-                f"💡 Tente outro modelo: polly --list-models"
+                f"❌ {get_text('error.request', error_msg=error_msg)}\n"
+                f"💡 {get_text('error.request_tip')}"
             )
         except (KeyError, json.JSONDecodeError) as e:
             raise Exception(
-                f"⚠️  Resposta inválida da API: {str(e)}\n"
-                f"💡 O modelo '{model}' pode estar com problemas.\n"
-                f"   Tente: polly --model gemini (geralmente mais estável)"
+                f"⚠️  {get_text('error.invalid_response')}\n"
+                f"💡 {get_text('error.model_unavailable', model=model)}\n"
+                f"   {get_text('error.model_suggestion')}"
             )
     
     def _handle_streaming_response(self, response) -> Generator[str, None, None]:
@@ -192,20 +215,46 @@ class PollinationsAPI:
                 except json.JSONDecodeError:
                     continue
     
-    def get_available_models(self) -> List[Dict[str, any]]:
+    def get_available_models(self, use_cache: bool = True) -> List[Dict[str, any]]:
         """
-        Get list of available models from API
-        
+        Get list of available models from API (dynamically fetched)
+
+        Args:
+            use_cache: If True and fetch fails, return hardcoded models
+
         Returns:
             List of model information dicts
         """
         try:
+            # Try to fetch from backend first, then new API
+            if self.use_backend:
+                api_url = f"{self.backend_url}/api/models"
+            else:
+                api_url = f"{self.new_api_url}/models"
+
             response = requests.get(
-                f"{self.base_url}/models",
+                api_url,
                 headers=self._get_headers(),
-                timeout=self.timeout
+                timeout=10  # Short timeout for fast model list fetch
             )
             response.raise_for_status()
-            return response.json()
+            models = response.json()
+
+            # Filter out excluded models (already done by backend, but just in case)
+            excluded = {"midijourney", "openai-audio"}
+            filtered_models = [
+                model for model in models
+                if model.get("name") not in excluded
+            ]
+
+            return filtered_models
+
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to fetch models: {str(e)}")
+            if use_cache:
+                # Fallback to hardcoded models if fetch fails
+                return [
+                    {"name": name, "description": desc}
+                    for name, desc in AVAILABLE_MODELS.items()
+                ]
+            else:
+                raise Exception(f"Failed to fetch models: {str(e)}")

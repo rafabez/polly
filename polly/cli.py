@@ -110,6 +110,11 @@ def create_parser() -> argparse.ArgumentParser:
         choices=["pt", "en", "pt-br", "portuguese", "english"],
         help="Language for prompts (default: pt - Portuguese)"
     )
+    params_group.add_argument(
+        "--direct-api",
+        action="store_true",
+        help="Use direct Pollinations API (bypass proxy backend)"
+    )
     
     # Output options
     output_group = parser.add_argument_group("output")
@@ -157,6 +162,16 @@ def create_parser() -> argparse.ArgumentParser:
         metavar="LANG",
         choices=["pt", "en", "pt-br", "portuguese", "english"],
         help="Set default prompt language"
+    )
+    config_group.add_argument(
+        "--set-os",
+        metavar="OS",
+        help="Set default OS for command generation (auto, linux, macos, windows - case-insensitive)"
+    )
+    config_group.add_argument(
+        "--show-os",
+        action="store_true",
+        help="Display detected/configured OS"
     )
     
     # Info
@@ -223,7 +238,9 @@ def validate_args(args) -> Optional[str]:
         args.list_modes or
         args.reset_config or
         args.set_default_model or
-        args.set_language
+        args.set_language or
+        args.set_os or
+        args.show_os
     )
     
     if needs_prompt and not args.prompt and not args.explain:
