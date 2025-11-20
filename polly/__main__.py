@@ -13,7 +13,7 @@ from .config import get_config, AVAILABLE_MODELS
 from .prompts import get_prompt, get_available_modes
 from .utils import (
     print_response, print_error, print_info, print_success,
-    print_code, read_stdin, read_file,
+    print_code, read_stdin, read_file, stream_response,
     show_spinner, truncate_context
 )
 from .i18n import get_text

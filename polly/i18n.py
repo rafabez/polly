@@ -342,3 +342,8 @@ def get_text(key: str, lang: str = None, **kwargs) -> str:
             pass  # If format fails, return unformatted text
 
     return text
+
+
+def t(key: str, **kwargs) -> str:
+    """Shorthand for get_text()"""
+    return get_text(key, **kwargs)
