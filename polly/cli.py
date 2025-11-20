@@ -201,11 +201,6 @@ def create_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def parse_args(argv: Optional[list] = None):
-    """Parse command-line arguments"""
-    return create_parser().parse_args(argv)
-
-
 def validate_args(args) -> Optional[str]:
     """
     Validate argument combinations

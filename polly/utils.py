@@ -49,21 +49,10 @@ def print_success(message: str):
     console.print(f"[bold green]{get_text('label.success')}[/bold green] {message}")
 
 
-def print_warning(message: str):
-    """Print warning message in yellow"""
-    console.print(f"[bold yellow]{get_text('label.warning')}[/bold yellow] {message}")
-
-
 def print_code(code: str, language: str = "bash"):
     """Print code with syntax highlighting"""
     syntax = Syntax(code, language, theme="monokai", line_numbers=False)
     console.print(syntax)
-
-
-def print_panel(content: str, title: str = "Polly", border_style: str = "blue"):
-    """Print content in a panel"""
-    panel = Panel(content, title=title, border_style=border_style)
-    console.print(panel)
 
 
 def read_stdin() -> Optional[str]:
@@ -107,26 +96,6 @@ def read_file(filepath: str) -> str:
         raise Exception(get_text("file.encoding"))
     except Exception as e:
         raise Exception(get_text("file.read_error", str=str(e)))
-
-
-def stream_response(generator, format_markdown: bool = True):
-    """
-    Stream response chunks to console
-    
-    Args:
-        generator: Generator yielding response chunks
-        format_markdown: Whether to format as markdown
-    """
-    accumulated = ""
-    try:
-        for chunk in generator:
-            accumulated += chunk
-            console.print(chunk, end="", markup=False)
-        console.print()  # New line at the end
-        return accumulated
-    except KeyboardInterrupt:
-        console.print(f"\n[yellow]{get_text('file.interrupted')}[/yellow]")
-        return accumulated
 
 
 def show_spinner(message: str = "Thinking..."):
