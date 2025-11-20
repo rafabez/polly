@@ -8,6 +8,7 @@ import platform
 import yaml
 from pathlib import Path
 from typing import Dict, Any
+from .i18n import get_text
 
 
 def detect_os() -> str:
@@ -28,7 +29,9 @@ def detect_language() -> str:
         str: Language code ('pt' for Portuguese variants, 'en' for others)
     """
     try:
-        lang_code, _ = locale.getdefaultlocale()
+        # Use modern locale detection (getdefaultlocale is deprecated in Python 3.13+)
+        locale.setlocale(locale.LC_ALL, '')
+        lang_code, _ = locale.getlocale()
         if lang_code:
             # Check if Portuguese variant (pt, pt_BR, pt_PT, etc.)
             if lang_code.lower().startswith('pt'):
@@ -143,7 +146,8 @@ class Config:
                 config.update(user_config)
                 return config
             except Exception as e:
-                print(f"Warning: Could not load config file: {e}")
+                # Use English for errors during config loading to avoid circular dependency
+                print(get_text("config.load_error", lang="en", e=str(e)))
                 return DEFAULT_CONFIG.copy()
         return DEFAULT_CONFIG.copy()
     
@@ -155,7 +159,8 @@ class Config:
                 yaml.dump(self.config, f, default_flow_style=False)
             return True
         except Exception as e:
-            print(f"Error saving config: {e}")
+            # Config is loaded, safe to auto-detect language
+            print(get_text("config.save_error", e=str(e)))
             return False
     
     def get(self, key: str, default=None):
@@ -184,7 +189,8 @@ class Config:
             normalized = normalize_os(os_value)
         except ValueError:
             # Fallback to "auto" if normalization fails
-            print(f"Warning: Invalid OS '{os_value}', using 'auto'")
+            # Use English to avoid potential circular dependency
+            print(get_text("config.invalid_os", lang="en", os_value=os_value))
             normalized = "auto"
 
         if normalized == "auto":

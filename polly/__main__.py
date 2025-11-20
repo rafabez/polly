@@ -106,9 +106,10 @@ def handle_config_commands(args):
         # Normalize darwin to macos for display
         display_detected = "macos" if detected_os == "darwin" else detected_os
         display_effective = "macos" if effective_os == "darwin" else effective_os
+        display_configured = "macos" if configured_os == "darwin" else configured_os
 
         print_info(f"{get_text('msg.os_detected')} {display_detected}")
-        print_info(f"{get_text('msg.os_current')} {configured_os}")
+        print_info(f"{get_text('msg.os_current')} {display_configured}")
         if configured_os == "auto":
             print_info(f"  → Effective: {display_effective}")
         return True

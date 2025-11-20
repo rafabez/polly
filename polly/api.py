@@ -238,14 +238,34 @@ class PollinationsAPI:
                 timeout=10  # Short timeout for fast model list fetch
             )
             response.raise_for_status()
-            models = response.json()
+            models_data = response.json()
+
+            # Handle OpenAI-compatible format (new direct API)
+            if isinstance(models_data, dict) and "data" in models_data:
+                models = models_data["data"]
+            else:
+                models = models_data
 
             # Filter out excluded models (already done by backend, but just in case)
             excluded = {"midijourney", "openai-audio"}
-            filtered_models = [
-                model for model in models
-                if model.get("name") not in excluded
-            ]
+
+            # Normalize to consistent format: {"name": ..., "description": ...}
+            filtered_models = []
+            for model in models:
+                # Handle both "id" (new API) and "name" (backend) fields
+                name = model.get("id") or model.get("name", "unknown")
+
+                # Skip excluded models
+                if name in excluded:
+                    continue
+
+                # Get description if available
+                description = model.get("description", "")
+
+                filtered_models.append({
+                    "name": name,
+                    "description": description
+                })
 
             return filtered_models
 

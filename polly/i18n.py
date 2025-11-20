@@ -149,6 +149,8 @@ TRANSLATIONS = {
 
         # Config errors
         "config.load_error": "Could not load config file: {e}",
+        "config.save_error": "Error saving config: {e}",
+        "config.invalid_os": "Warning: Invalid OS '{os_value}', using 'auto'",
     },
 
     "pt": {
@@ -293,6 +295,8 @@ TRANSLATIONS = {
 
         # Config errors
         "config.load_error": "Não foi possível carregar arquivo de configuração: {e}",
+        "config.save_error": "Erro ao salvar configuração: {e}",
+        "config.invalid_os": "Aviso: SO inválido '{os_value}', usando 'auto'",
     }
 }
 
