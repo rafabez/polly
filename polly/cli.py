@@ -10,6 +10,26 @@ from .prompts import get_available_modes
 from . import __version__
 
 
+class OptionalIntAction(argparse.Action):
+    """Custom action to handle optional integer arguments like -c or -c3"""
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values is None:
+            # -c without value, use default of 1
+            setattr(namespace, self.dest, 1)
+        elif values.isdigit():
+            # -c3 or -c 3 with a number, use the provided value
+            setattr(namespace, self.dest, int(values))
+        else:
+            # Value is not a digit, treat as if -c was used without a number (default to 1)
+            # This handles cases like "polly -c how do I..." where "how" would be consumed
+            # Instead, we default to 1 and let "how" be part of the prompt
+            setattr(namespace, self.dest, 1)
+            # Put the non-integer value back into the prompt by prepending it
+            if not hasattr(namespace, '_extra_prompt'):
+                namespace._extra_prompt = []
+            namespace._extra_prompt.append(values)
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Create and configure argument parser"""
     
@@ -36,15 +56,18 @@ def create_parser() -> argparse.ArgumentParser:
     )
     mode_group.add_argument(
         "-c", "--command",
-        action="store_true",
-        help="Get Linux/bash command"
+        nargs="?",
+        const=None,
+        action=OptionalIntAction,
+        metavar="N",
+        help="Get Linux/bash command (optionally specify N versions, e.g., -c3)"
     )
     mode_group.add_argument(
         "--command-versions",
         type=int,
         metavar="N",
         default=1,
-        help="Number of command versions (use with -c, default: 1)"
+        help="Number of command versions (deprecated: use -cN instead)"
     )
     mode_group.add_argument(
         "-ce", "--command-explain",
@@ -110,6 +133,11 @@ def create_parser() -> argparse.ArgumentParser:
         choices=["pt", "en", "pt-br", "portuguese", "english"],
         help="Language for prompts (default: pt - Portuguese)"
     )
+    params_group.add_argument(
+        "--direct-api",
+        action="store_true",
+        help="Use direct Pollinations API (bypass proxy backend)"
+    )
     
     # Output options
     output_group = parser.add_argument_group("output")
@@ -158,6 +186,16 @@ def create_parser() -> argparse.ArgumentParser:
         choices=["pt", "en", "pt-br", "portuguese", "english"],
         help="Set default prompt language"
     )
+    config_group.add_argument(
+        "--set-os",
+        metavar="OS",
+        help="Set default OS for command generation (auto, linux, macos, windows - case-insensitive)"
+    )
+    config_group.add_argument(
+        "--show-os",
+        action="store_true",
+        help="Display detected/configured OS"
+    )
     
     # Info
     info_group = parser.add_argument_group("information")
@@ -188,7 +226,28 @@ def create_parser() -> argparse.ArgumentParser:
 
 def parse_args(argv: Optional[list] = None):
     """Parse command-line arguments"""
-    return create_parser().parse_args(argv)
+    args = create_parser().parse_args(argv)
+
+    # Handle extra prompt items that were consumed by optional arguments
+    if hasattr(args, '_extra_prompt') and args._extra_prompt:
+        # Prepend extra items to the prompt
+        if args.prompt is None:
+            args.prompt = []
+        elif not isinstance(args.prompt, list):
+            args.prompt = [args.prompt]
+
+        # Split extra prompt items if they contain spaces (when passed as a single quoted string)
+        extra_parts = []
+        for item in args._extra_prompt:
+            if ' ' in item:
+                extra_parts.extend(item.split())
+            else:
+                extra_parts.append(item)
+
+        args.prompt = extra_parts + list(args.prompt)
+        delattr(args, '_extra_prompt')
+
+    return args
 
 
 def validate_args(args) -> Optional[str]:
@@ -223,7 +282,9 @@ def validate_args(args) -> Optional[str]:
         args.list_modes or
         args.reset_config or
         args.set_default_model or
-        args.set_language
+        args.set_language or
+        args.set_os or
+        args.show_os
     )
     
     if needs_prompt and not args.prompt and not args.explain:

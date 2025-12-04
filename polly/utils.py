@@ -3,6 +3,7 @@ Utility functions for Polly
 """
 
 import sys
+import platform
 from typing import Optional
 from rich.console import Console
 from rich.markdown import Markdown
@@ -10,14 +11,17 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.live import Live
 from rich.spinner import Spinner
+from .i18n import get_text
 
-console = Console()
+# Configure console with legacy_windows=False to enable better Unicode support on Windows
+# This helps with emoji display while maintaining compatibility
+console = Console(legacy_windows=False)
 
 
 def print_response(text: str, format_markdown: bool = True):
     """
     Print AI response with formatting
-    
+
     Args:
         text: The text to print
         format_markdown: Whether to render as markdown
@@ -26,31 +30,54 @@ def print_response(text: str, format_markdown: bool = True):
         try:
             md = Markdown(text)
             console.print(md)
+        except UnicodeEncodeError:
+            # Windows console encoding issue - print with ASCII-safe fallback
+            safe_text = text.encode('ascii', errors='replace').decode('ascii')
+            print(safe_text)
+            print(f"\n{get_text('msg.unicode_warning')}" if 'msg.unicode_warning' in dir() else "\nNote: Some characters couldn't be displayed due to console encoding.")
         except Exception:
             # Fallback to plain text if markdown parsing fails
-            console.print(text)
+            try:
+                console.print(text)
+            except UnicodeEncodeError:
+                safe_text = text.encode('ascii', errors='replace').decode('ascii')
+                print(safe_text)
     else:
-        console.print(text)
+        try:
+            console.print(text)
+        except UnicodeEncodeError:
+            safe_text = text.encode('ascii', errors='replace').decode('ascii')
+            print(safe_text)
 
 
 def print_error(message: str):
     """Print error message in red"""
-    console.print(f"[bold red]Error:[/bold red] {message}")
+    try:
+        console.print(f"[bold red]{get_text('label.error')}[/bold red] {message}")
+    except UnicodeEncodeError:
+        # Fallback for Windows console encoding issues
+        safe_message = message.encode('ascii', errors='replace').decode('ascii')
+        print(f"Error: {safe_message}")
 
 
 def print_info(message: str):
     """Print info message in blue"""
-    console.print(f"[bold blue]Info:[/bold blue] {message}")
+    try:
+        console.print(f"[bold blue]{get_text('label.info')}[/bold blue] {message}")
+    except UnicodeEncodeError:
+        # Fallback for Windows console encoding issues
+        safe_message = message.encode('ascii', errors='replace').decode('ascii')
+        print(f"Info: {safe_message}")
 
 
 def print_success(message: str):
     """Print success message in green"""
-    console.print(f"[bold green]✓[/bold green] {message}")
+    console.print(f"[bold green]{get_text('label.success')}[/bold green] {message}")
 
 
 def print_warning(message: str):
     """Print warning message in yellow"""
-    console.print(f"[bold yellow]Warning:[/bold yellow] {message}")
+    console.print(f"[bold yellow]{get_text('label.warning')}[/bold yellow] {message}")
 
 
 def print_code(code: str, language: str = "bash"):
@@ -91,27 +118,27 @@ def read_file(filepath: str) -> str:
     if is_pdf_file(filepath):
         content = read_pdf(filepath)
         if content is None:
-            raise Exception("Failed to extract text from PDF")
+            raise Exception(get_text("pdf.no_text"))
         return content
-    
+
     # Regular text file
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             return f.read()
     except FileNotFoundError:
-        raise Exception(f"File not found: {filepath}")
+        raise Exception(get_text("file.not_found", filepath=filepath))
     except PermissionError:
-        raise Exception(f"Permission denied: {filepath}")
+        raise Exception(get_text("file.permission", filepath=filepath))
     except UnicodeDecodeError:
-        raise Exception(f"File encoding error. PDF files are supported with --explain, --debug, etc.")
+        raise Exception(get_text("file.encoding"))
     except Exception as e:
-        raise Exception(f"Error reading file: {str(e)}")
+        raise Exception(get_text("file.read_error", str=str(e)))
 
 
 def stream_response(generator, format_markdown: bool = True):
     """
     Stream response chunks to console
-    
+
     Args:
         generator: Generator yielding response chunks
         format_markdown: Whether to format as markdown
@@ -124,7 +151,7 @@ def stream_response(generator, format_markdown: bool = True):
         console.print()  # New line at the end
         return accumulated
     except KeyboardInterrupt:
-        console.print("\n[yellow]Interrupted by user[/yellow]")
+        console.print(f"\n[yellow]{get_text('file.interrupted')}[/yellow]")
         return accumulated
 
 
