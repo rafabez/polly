@@ -13,35 +13,15 @@ from rich.live import Live
 from rich.spinner import Spinner
 from .i18n import get_text
 
-# Configure Windows console for UTF-8 to prevent UnicodeEncodeError
-# This fixes issues with emojis and special characters in cp1252 console
-if platform.system() == "Windows":
-    try:
-        import io
-        # Reconfigure stdout and stderr to UTF-8 with error replacement
-        sys.stdout = io.TextIOWrapper(
-            sys.stdout.buffer,
-            encoding='utf-8',
-            errors='replace',  # Replace instead of crash on encoding errors
-            line_buffering=True
-        )
-        sys.stderr = io.TextIOWrapper(
-            sys.stderr.buffer,
-            encoding='utf-8',
-            errors='replace',
-            line_buffering=True
-        )
-    except (AttributeError, io.UnsupportedOperation):
-        # If reconfiguration fails, console will use system default
-        pass
-
-console = Console()
+# Configure console with legacy_windows=False to enable better Unicode support on Windows
+# This helps with emoji display while maintaining compatibility
+console = Console(legacy_windows=False)
 
 
 def print_response(text: str, format_markdown: bool = True):
     """
     Print AI response with formatting
-    
+
     Args:
         text: The text to print
         format_markdown: Whether to render as markdown
@@ -50,21 +30,44 @@ def print_response(text: str, format_markdown: bool = True):
         try:
             md = Markdown(text)
             console.print(md)
+        except UnicodeEncodeError:
+            # Windows console encoding issue - print with ASCII-safe fallback
+            safe_text = text.encode('ascii', errors='replace').decode('ascii')
+            print(safe_text)
+            print(f"\n{get_text('msg.unicode_warning')}" if 'msg.unicode_warning' in dir() else "\nNote: Some characters couldn't be displayed due to console encoding.")
         except Exception:
             # Fallback to plain text if markdown parsing fails
-            console.print(text)
+            try:
+                console.print(text)
+            except UnicodeEncodeError:
+                safe_text = text.encode('ascii', errors='replace').decode('ascii')
+                print(safe_text)
     else:
-        console.print(text)
+        try:
+            console.print(text)
+        except UnicodeEncodeError:
+            safe_text = text.encode('ascii', errors='replace').decode('ascii')
+            print(safe_text)
 
 
 def print_error(message: str):
     """Print error message in red"""
-    console.print(f"[bold red]{get_text('label.error')}[/bold red] {message}")
+    try:
+        console.print(f"[bold red]{get_text('label.error')}[/bold red] {message}")
+    except UnicodeEncodeError:
+        # Fallback for Windows console encoding issues
+        safe_message = message.encode('ascii', errors='replace').decode('ascii')
+        print(f"Error: {safe_message}")
 
 
 def print_info(message: str):
     """Print info message in blue"""
-    console.print(f"[bold blue]{get_text('label.info')}[/bold blue] {message}")
+    try:
+        console.print(f"[bold blue]{get_text('label.info')}[/bold blue] {message}")
+    except UnicodeEncodeError:
+        # Fallback for Windows console encoding issues
+        safe_message = message.encode('ascii', errors='replace').decode('ascii')
+        print(f"Info: {safe_message}")
 
 
 def print_success(message: str):

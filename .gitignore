@@ -93,3 +93,11 @@ web2/
 
 # Backend (separate repository)
 polly-backend/
+
+# Test artifacts (temporary files)
+test_comprehensive.py
+test_results*.json
+TEST_*.txt
+TEST_*.md
+COMPREHENSIVE_TEST_*.md
+PR_DESCRIPTION.md

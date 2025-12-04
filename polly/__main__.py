@@ -111,7 +111,7 @@ def handle_config_commands(args):
         print_info(f"{get_text('msg.os_detected')} {display_detected}")
         print_info(f"{get_text('msg.os_current')} {display_configured}")
         if configured_os == "auto":
-            print_info(f"  → Effective: {display_effective}")
+            print_info(f"  -> Effective: {display_effective}")
         return True
 
     if args.config:
