@@ -221,9 +221,19 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
         # Get target language from either -t or -tf
         target_lang = args.translate if args.translate else args.translate_file[0]
         system_prompt, user_prompt = get_prompt(mode, content, language=language, target_language=target_lang, os_type=os_type)
-    elif mode == "command" and hasattr(args, 'command_versions') and args.command_versions > 1:
-        # Command mode with multiple versions
-        system_prompt, user_prompt = get_prompt(mode, content, language=language, num_versions=args.command_versions, os_type=os_type)
+    elif mode == "command":
+        # Command mode - check for number of versions
+        # Support both -cN format and legacy --command-versions
+        num_versions = 1
+        if args.command and args.command > 1:
+            num_versions = args.command
+        elif hasattr(args, 'command_versions') and args.command_versions > 1:
+            num_versions = args.command_versions
+
+        if num_versions > 1:
+            system_prompt, user_prompt = get_prompt(mode, content, language=language, num_versions=num_versions, os_type=os_type)
+        else:
+            system_prompt, user_prompt = get_prompt(mode, content, language=language, os_type=os_type)
     else:
         system_prompt, user_prompt = get_prompt(mode, content, language=language, os_type=os_type)
     

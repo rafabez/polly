@@ -2,12 +2,36 @@
 Custom help formatter using Rich for beautiful output
 """
 
+import sys
+import platform
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 from rich import box
 from .i18n import get_text
+
+# Configure Windows console for UTF-8 to prevent UnicodeEncodeError
+# This fixes issues with emojis and special characters in cp1252 console
+if platform.system() == "Windows":
+    try:
+        import io
+        # Reconfigure stdout and stderr to UTF-8 with error replacement
+        sys.stdout = io.TextIOWrapper(
+            sys.stdout.buffer,
+            encoding='utf-8',
+            errors='replace',  # Replace instead of crash on encoding errors
+            line_buffering=True
+        )
+        sys.stderr = io.TextIOWrapper(
+            sys.stderr.buffer,
+            encoding='utf-8',
+            errors='replace',
+            line_buffering=True
+        )
+    except (AttributeError, io.UnsupportedOperation):
+        # If reconfiguration fails, console will use system default
+        pass
 
 console = Console()
 
