@@ -9,7 +9,7 @@ from typing import Dict
 TRANSLATIONS = {
     "en": {
         # Help text
-        "help.title": "Polly - Cross-Platform LLM CLI Assistant",
+        "help.title": "Cross-Platform LLM CLI Assistant",
         "help.powered_by": "Powered by Pollinations.ai",
         "help.usage": "USAGE",
         "help.modes": "MODES",
@@ -46,7 +46,7 @@ TRANSLATIONS = {
 
         # Configuration
         "config.view": "View/open configuration file",
-        "config.set_model": "Set default model",
+        "config.set_model": "Set default model (interactive if no model specified)",
         "config.set_language": "Set default prompt language (en/pt)",
         "config.set_os": "Set target OS for commands (auto/linux/macos/windows)",
         "config.show_os": "Show detected and configured OS",
@@ -98,6 +98,11 @@ TRANSLATIONS = {
         "msg.os_set": "Default OS set to:",
         "msg.os_detected": "OS detected:",
         "msg.os_current": "Current OS setting:",
+        "msg.cancelled": "Cancelled",
+        "msg.invalid_selection": "Invalid selection. Please choose",
+        "msg.auto_selected": "Auto-selected:",
+        "msg.ambiguous_input": "Ambiguous input. Matches:",
+        "msg.unknown_model": "Unknown model:",
 
         # Error messages (from api.py)
         "error.timeout": "Timeout: Model '{model}' took too long to respond.",
@@ -155,7 +160,7 @@ TRANSLATIONS = {
 
     "pt": {
         # Help text
-        "help.title": "Polly - Assistente LLM CLI Cross-Platform",
+        "help.title": "Assistente LLM CLI Cross-Platform",
         "help.powered_by": "Powered by Pollinations.ai",
         "help.usage": "USO",
         "help.modes": "MODOS",
@@ -192,7 +197,7 @@ TRANSLATIONS = {
 
         # Configuration
         "config.view": "Ver/abrir arquivo de configuração",
-        "config.set_model": "Define modelo padrão",
+        "config.set_model": "Define modelo padrão (interativo se nenhum modelo especificado)",
         "config.set_language": "Define idioma padrão dos prompts (en/pt)",
         "config.set_os": "Definir OS alvo para comandos (auto/linux/macos/windows)",
         "config.show_os": "Mostrar OS detectado e configurado",
@@ -244,6 +249,11 @@ TRANSLATIONS = {
         "msg.os_set": "OS padrão definido para:",
         "msg.os_detected": "OS detectado:",
         "msg.os_current": "Configuração atual de OS:",
+        "msg.cancelled": "Cancelado",
+        "msg.invalid_selection": "Seleção inválida. Por favor escolha",
+        "msg.auto_selected": "Auto-selecionado:",
+        "msg.ambiguous_input": "Entrada ambígua. Correspondências:",
+        "msg.unknown_model": "Modelo desconhecido:",
 
         # Error messages
         "error.timeout": "Timeout: O modelo '{model}' demorou muito para responder.",

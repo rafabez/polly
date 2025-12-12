@@ -159,10 +159,13 @@ Após instalar, configure o Polly:
 # Ver configuração atual
 polly --config
 
-# Definir modelo padrão
-polly --set-default-model gemini
+# Definir modelo padrão (modo interativo)
+polly -M
 
-# Testar modo interativo
+# Definir modelo padrão (modo direto)
+polly -M gemini
+
+# Testar modo interativo de chat
 polly -i
 ```
 

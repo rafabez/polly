@@ -18,7 +18,7 @@
 - [ ] Testar com diferentes modelos
 - [ ] Testar pipe: `cat file | polly`
 - [ ] Testar flags: `-v`, `--help`, `--list-models`
-- [ ] Testar configuração: `--set-language`, `--set-default-model`
+- [ ] Testar configuração: `--set-language`, `-M` (interactive), `-M model` (direct), `--set-default-model`
 - [ ] Testar múltiplas versões: `polly -c3 'comando'`
 
 ### 4. Código

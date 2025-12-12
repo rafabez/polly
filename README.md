@@ -2,7 +2,7 @@
 
 ![Polly Banner](images/01_parrot_wallpaper.png)
 
-# 🦜 Polly - Your Free AI Terminal Companion
+# 🦜 Polly AI - Your Free AI Terminal Companion
 
 ### The Cross-Platform AI Assistant That Just Works. Everywhere.
 
@@ -18,9 +18,9 @@
 
 ---
 
-## 🚀 Why Polly?
+## 🚀 Why Polly AI?
 
-**Polly** is your intelligent terminal assistant that breaks all barriers:
+**Polly AI** is your intelligent terminal assistant that breaks all barriers:
 
 ### ✨ Key Features
 
@@ -370,12 +370,16 @@ Polly supports multiple AI models with different strengths:
 # List available models
 polly --list-models
 
-# Use a specific model
+# Use a specific model for one query
 polly --model gemini Fast query
 polly --model openai-large "Complex reasoning"
 polly --model qwen-coder "Code generation"
 
-# Set default model
+# Set default model - Interactive mode (select from list)
+polly -M
+
+# Set default model - Direct mode
+polly -M openai-large
 polly --set-default-model openai-large
 ```
 

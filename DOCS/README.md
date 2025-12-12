@@ -1,6 +1,6 @@
-# 📚 Polly Documentation
+# 📚 Polly AI Documentation
 
-This directory contains additional documentation and guides for Polly.
+This directory contains additional documentation and guides for Polly AI.
 
 ## 📖 User Documentation
 

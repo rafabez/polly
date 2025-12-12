@@ -1,6 +1,6 @@
-# Contributing to Polly
+# Contributing to Polly AI
 
-Thank you for your interest in contributing to Polly! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Polly AI! This document provides guidelines and instructions for contributing.
 
 ## 🚀 Getting Started
 
@@ -66,7 +66,7 @@ Before submitting a PR, please test:
 - All modes: `-e`, `-c`, `-ce`, `-d`, `-r`, `-t`, `-i`
 - Different models: `--model gemini`, `--model openai`, etc.
 - Piping: `echo "test" | polly -e`
-- Configuration: `--config`, `--set-default-model`
+- Configuration: `--config`, `-M` / `--set-default-model`
 - Error handling: invalid inputs, network errors, etc.
 
 ## 🎯 Areas for Contribution

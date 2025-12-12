@@ -214,3 +214,86 @@ def truncate_context(messages: list, max_chars: int = 5000) -> list:
             break
     
     return truncated
+
+
+def interactive_model_selection(config) -> Optional[str]:
+    """
+    Show interactive model selection menu.
+
+    Args:
+        config: Configuration instance
+
+    Returns:
+        Selected model name or None if cancelled
+    """
+    from .config import AVAILABLE_MODELS
+    from .api import PollinationsAPI
+
+    current_model = config.get("default_model")
+
+    # Try to fetch dynamic models, fallback to hardcoded
+    try:
+        api = PollinationsAPI()
+        models = api.get_available_models(use_cache=True)
+    except:
+        models = [{"name": k, "description": v} for k, v in AVAILABLE_MODELS.items()]
+
+    print_info(f"{get_text('msg.available_models')}\n")
+
+    # Display numbered list
+    for idx, model in enumerate(models, 1):
+        name = model.get("name", "unknown")
+        description = model.get("description", "")
+        is_default = " ✓" if name == current_model else ""
+
+        # Format output
+        if description and description != name and "unknown" not in description.lower():
+            console.print(f"  [cyan]{idx}.[/cyan] [bold]{name:18}[/bold] - {description}[green]{is_default}[/green]")
+        else:
+            console.print(f"  [cyan]{idx}.[/cyan] [bold]{name}[/bold][green]{is_default}[/green]")
+
+    print()
+
+    # Get user input
+    try:
+        user_input = input(f"Select model (1-{len(models)}, model name, or 'cancel'): ").strip()
+
+        if user_input.lower() in ['cancel', 'quit', 'exit', 'q', '']:
+            print_info(get_text("msg.cancelled"))
+            return None
+
+        # Try parsing as number
+        if user_input.isdigit():
+            idx = int(user_input)
+            if 1 <= idx <= len(models):
+                return models[idx - 1]["name"]
+            else:
+                print_error(f"{get_text('msg.invalid_selection')} 1-{len(models)}")
+                return None
+
+        # Try as model name (exact or partial match)
+        model_names = [m["name"] for m in models]
+
+        # Exact match
+        if user_input in model_names:
+            return user_input
+
+        # Partial match
+        matches = [name for name in model_names if user_input.lower() in name.lower()]
+        if len(matches) == 1:
+            print_info(f"{get_text('msg.auto_selected')} {matches[0]}")
+            return matches[0]
+        elif len(matches) > 1:
+            print_error(f"{get_text('msg.ambiguous_input')} {', '.join(matches)}")
+            return None
+        else:
+            print_error(f"{get_text('msg.unknown_model')} {user_input}")
+            return None
+
+    except KeyboardInterrupt:
+        print("\n")
+        print_info(get_text("msg.cancelled"))
+        return None
+    except Exception as e:
+        print_error(f"{get_text('label.error')} {str(e)}")
+        return None

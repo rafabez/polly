@@ -1,10 +1,10 @@
 ![Polly Banner](images/01_parrot_wallpaper.png)
 
-# Polly - Assistente de IA Cross-Platform para Terminal
+# Polly AI - Assistente de IA Cross-Platform para Terminal
 
 > Português | **[Read in English](README.md)**
 
-**Polly** é um poderoso assistente de IA cross-platform para linha de comando, alimentado pela API gratuita do [Pollinations.ai](https://pollinations.ai). Obtenha respostas instantâneas, sugestões de comandos, explicações de código e muito mais—tudo direto do seu terminal.
+**Polly AI** é um poderoso assistente de IA cross-platform para linha de comando, alimentado pela API gratuita do [Pollinations.ai](https://pollinations.ai). Obtenha respostas instantâneas, sugestões de comandos, explicações de código e muito mais—tudo direto do seu terminal.
 
 ## Funcionalidades
 
@@ -122,13 +122,17 @@ polly -i
 ### Seleção de Modelo
 
 ```bash
-# Usar modelo específico
+# Usar modelo específico para uma consulta
 polly --model gemini Explique computação quântica
 
 # Listar modelos disponíveis
 polly --list-models
 
-# Definir modelo padrão
+# Definir modelo padrão - Modo interativo (selecionar da lista)
+polly -M
+
+# Definir modelo padrão - Modo direto
+polly -M openai-large
 polly --set-default-model openai-large
 ```
 
@@ -263,7 +267,11 @@ Polly armazena configuração em `~/.config/polly/config.yaml`
 # Ver configuração atual
 polly --config
 
-# Definir modelo padrão
+# Definir modelo padrão (modo interativo)
+polly -M
+
+# Definir modelo padrão (modo direto)
+polly -M gemini
 polly --set-default-model gemini
 
 # Definir idioma padrão para prompts

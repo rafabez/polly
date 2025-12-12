@@ -14,7 +14,7 @@ from .prompts import get_prompt, get_available_modes
 from .utils import (
     print_response, print_error, print_info, print_success,
     print_code, read_stdin, read_file, stream_response,
-    show_spinner, truncate_context
+    show_spinner, truncate_context, interactive_model_selection
 )
 from .i18n import get_text
 
@@ -60,12 +60,24 @@ def handle_config_commands(args):
             print(f"  • {mode:18} - {description}")
         return True
 
-    if args.set_default_model:
-        config.set("default_model", args.set_default_model)
-        if config.save_config():
-            print_success(f"{get_text('msg.model_set')} {args.set_default_model}")
+    if args.set_default_model is not None:
+        # Interactive mode - show model selection menu
+        if args.set_default_model == "__interactive__":
+            selected_model = interactive_model_selection(config)
+            if selected_model:
+                config.set("default_model", selected_model)
+                if config.save_config():
+                    print_success(f"{get_text('msg.model_set')} {selected_model}")
+                else:
+                    print_error(get_text("msg.config_failed"))
+            # If None, user cancelled - just return
         else:
-            print_error(get_text("msg.config_failed"))
+            # Direct mode - set model directly
+            config.set("default_model", args.set_default_model)
+            if config.save_config():
+                print_success(f"{get_text('msg.model_set')} {args.set_default_model}")
+            else:
+                print_error(get_text("msg.config_failed"))
         return True
 
     if args.reset_config:

@@ -61,7 +61,11 @@ make test
 # Ver configuração atual
 polly --config
 
-# Definir modelo padrão
+# Definir modelo padrão (modo interativo - selecionar da lista)
+polly -M
+
+# Definir modelo padrão (modo direto)
+polly -M gemini
 polly --set-default-model gemini
 
 # Resetar configuração

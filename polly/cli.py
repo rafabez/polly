@@ -170,10 +170,12 @@ def create_parser() -> argparse.ArgumentParser:
         help="Open configuration file"
     )
     config_group.add_argument(
-        "--set-default-model",
+        "-M", "--set-default-model",
         metavar="MODEL",
-        choices=list(AVAILABLE_MODELS.keys()),
-        help="Set default model"
+        nargs="?",
+        const="__interactive__",
+        choices=list(AVAILABLE_MODELS.keys()) + ["__interactive__"],
+        help="Set default model (interactive if no model specified)"
     )
     config_group.add_argument(
         "--reset-config",

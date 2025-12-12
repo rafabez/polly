@@ -19,7 +19,7 @@ def print_help():
     # Header
     console.print()
     console.print(Panel(
-        f"[bold green]Polly[/bold green] - {get_text('help.title')}",
+        f"[bold green]Polly AI[/bold green] - {get_text('help.title')}",
         border_style="green"
     ))
     console.print(Panel(
@@ -88,7 +88,7 @@ def print_help():
     config_table.add_column(style="white")
 
     config_table.add_row("--config", get_text("config.view"))
-    config_table.add_row("--set-default-model", get_text("config.set_model"))
+    config_table.add_row("-M, --set-default-model", get_text("config.set_model"))
     config_table.add_row("--set-language LANG", get_text("config.set_language"))
     config_table.add_row("--set-os OS", get_text("config.set_os"))
     config_table.add_row("--show-os", get_text("config.show_os"))
