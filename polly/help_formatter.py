@@ -114,17 +114,17 @@ def print_help():
     # Examples
     console.print(f"[bold yellow]{get_text('help.examples')}[/bold yellow]")
     examples = [
-        (get_text("example.basic"), "polly 'O que é recursão?'"),
-        (get_text("example.command"), "polly -c 'listar arquivos grandes'"),
+        (get_text("example.basic"), "polly O que é recursão?"),
+        (get_text("example.command"), "polly -c listar arquivos grandes"),
         (get_text("example.explain"), "polly -e script.sh"),
         (get_text("example.explain"), "polly -e documento.pdf"),
         (get_text("example.debug"), "polly -d api.py"),
         (get_text("example.explain"), "polly -r code.py"),
-        (get_text("example.explain"), "polly 'Explique Docker' --pdf output.pdf"),
+        (get_text("example.explain"), "polly Explique Docker --pdf output.pdf"),
         (get_text("example.explain"), "cat api.py | polly"),
         (get_text("example.explain"), "polly -i"),
         (get_text("example.explain"), "polly -x"),
-        (get_text("example.model"), "polly --model deepseek 'Explique Docker'"),
+        (get_text("example.model"), "polly --model deepseek Explique Docker"),
     ]
 
     for desc, cmd in examples:
@@ -142,10 +142,10 @@ def print_help():
     console.print("    [green]polly -e arquivo.py[/green]")
     console.print()
     console.print(f"  [dim]• {get_text('tip.model_down')}[/dim]")
-    console.print("    [green]polly --model gemini 'sua pergunta'[/green]")
-    console.print("    [green]polly --model openai 'sua pergunta'[/green]")
+    console.print("    [green]polly --model gemini sua pergunta[/green]")
+    console.print("    [green]polly --model openai sua pergunta[/green]")
     console.print()
     console.print(f"  [dim]• {get_text('tip.pdf_support')}[/dim]")
     console.print("    [green]polly -e relatorio.pdf[/green]  [dim](ler PDF)[/dim]")
-    console.print("    [green]polly 'resumo' --pdf saida.pdf[/green]  [dim](gerar PDF)[/dim]")
+    console.print("    [green]polly resumo --pdf saida.pdf[/green]  [dim](gerar PDF)[/dim]")
     console.print()

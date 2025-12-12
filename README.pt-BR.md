@@ -40,7 +40,7 @@ pipx install git+https://github.com/rafabez/polly.git
 
 # Teste a instalação
 polly --version
-polly "Olá, Polly!"
+polly Olá, Polly!
 
 # Opcional: Adicionar suporte a PDF (se não instalado)
 pipx inject polly-ai pypdf reportlab
@@ -90,10 +90,10 @@ polly --version
 
 ```bash
 # Fazer uma pergunta
-polly "O que é recursão?"
+polly O que é recursão?
 
 # Obter um comando Linux
-polly -c "listar todos os arquivos modificados hoje"
+polly -c listar todos os arquivos modificados hoje
 
 # Explicar um arquivo
 polly -e script.sh
@@ -123,7 +123,7 @@ polly -i
 
 ```bash
 # Usar modelo específico
-polly --model gemini "Explique computação quântica"
+polly --model gemini Explique computação quântica
 
 # Listar modelos disponíveis
 polly --list-models
@@ -149,24 +149,24 @@ polly --set-default-model openai-large
 polly --temperature 1.5 "Escreva um poema criativo"
 
 # Habilitar streaming
-polly -s "Conte uma história longa"
+polly -s Conte uma história longa
 
 # Salvar saída em arquivo
 polly -o resposta.txt "Explique Docker"
 
 # Salvar saída como PDF
-polly "Explique containers Docker" --pdf guia-docker.pdf
+polly Explique containers Docker --pdf guia-docker.pdf
 
 # Ler arquivos PDF
 polly -e documento-tecnico.pdf
 polly -d relatorio-erros.pdf
 
 # Saída JSON
-polly --json "O que é Linux?"
+polly --json O que é Linux?
 
 # Pipe de outros comandos
-cat script.py | polly -d "Encontre bugs neste código"
-echo "Olá mundo" | polly -t "Inglês"
+cat script.py | polly -d Encontre bugs neste código
+echo "Olá mundo" | polly -t Inglês
 ```
 
 ## Exemplos de Uso
@@ -175,11 +175,11 @@ echo "Olá mundo" | polly -t "Inglês"
 
 ```bash
 # Obter apenas o comando
-$ polly -c "encontrar todos os arquivos Python maiores que 1MB"
+$ polly -c encontrar todos os arquivos Python maiores que 1MB
 find . -name "*.py" -size +1M
 
 # Obter comando com explicação
-$ polly -ce "comprimir todos os logs com mais de 30 dias"
+$ polly -ce comprimir todos os logs com mais de 30 dias
 find /var/log -name "*.log" -mtime +30 -exec gzip {} \;
 
 Explicação:
@@ -206,7 +206,7 @@ $ cat funcao_complexa.py | polly -e
 $ cat error.log | polly -d
 
 # Debug de código diretamente
-$ polly -d "$(cat script_bugado.sh)"
+$ polly -d $(cat script_bugado.sh)
 ```
 
 ### Modo Interativo
@@ -230,7 +230,7 @@ Info: Até logo!
 ### Tradução
 
 ```bash
-$ polly -t Inglês "Olá, como você está?"
+$ polly -t Inglês Olá, como você está?
 Hello, how are you?
 
 $ echo "Bom dia" | polly -t Espanhol
@@ -248,7 +248,7 @@ $ polly -e relatorio.pdf
 $ polly -d documento-tecnico.pdf
 
 # Gerar saída em PDF
-$ polly "Explique machine learning" --pdf guia-ml.pdf
+$ polly Explique machine learning --pdf guia-ml.pdf
 ✓ PDF salvo em: guia-ml.pdf
 
 # Ler PDF e salvar como novo PDF

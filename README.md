@@ -68,7 +68,7 @@ pipx install git+https://github.com/rafabez/polly.git
 
 # Test it out!
 polly --version
-polly "Hello, Polly!"
+polly Hello, Polly!
 ```
 
 ### Alternative: Install with pip
@@ -102,13 +102,13 @@ pip install -e .
 
 ```bash
 # Ask anything
-polly "What is machine learning?"
+polly What is machine learning?
 
 # Get help with terminal tasks
-polly "How do I check disk space?"
+polly How do I check disk space?
 
 # Code explanations
-polly "Explain what Docker does"
+polly Explain what Docker does
 ```
 
 ### Cross-Platform Command Generation
@@ -117,15 +117,15 @@ Polly **automatically detects your OS** and generates appropriate commands:
 
 ```bash
 # On Linux - generates bash/Linux commands
-polly -c "find large files"
+polly -c find large files
 # Output: find . -type f -size +100M
 
 # On macOS - generates macOS/zsh commands
-polly -c "show hidden files"
+polly -c show hidden files
 # Output: defaults write com.apple.finder AppleShowAllFiles YES
 
 # On Windows - generates PowerShell/CMD commands
-polly -c "list running processes"
+polly -c list running processes
 # Output: Get-Process | Where-Object {$_.Responding -eq $true}
 ```
 
@@ -136,7 +136,7 @@ polly -c "list running processes"
 polly -c --command-versions 3 "compress a directory"
 
 # Or use the shorthand
-polly -c3 "search for text in files"
+polly -c3 search for text in files
 ```
 
 ### File Operations
@@ -199,22 +199,22 @@ Generate OS-specific commands instantly.
 
 ```bash
 # Single command
-polly -c "find Python files modified today"
+polly -c find Python files modified today
 
 # Multiple versions (3 different approaches)
-polly -c3 "kill process by name"
+polly -c3 kill process by name
 
 # With explanation
-polly -ce "backup directory to remote server"
+polly -ce backup directory to remote server
 ```
 
 **Platform Examples:**
 
 | Platform | Query | Output |
 |----------|-------|--------|
-| **Linux** | `polly -c "monitor CPU usage"` | `top -bn1 \| grep "Cpu(s)"` |
-| **macOS** | `polly -c "monitor CPU usage"` | `top -l 1 \| grep "CPU usage"` |
-| **Windows** | `polly -c "monitor CPU usage"` | `Get-Counter '\Processor(_Total)\% Processor Time'` |
+| **Linux** | `polly -c monitor CPU usage` | `top -bn1 \| grep "Cpu(s)"` |
+| **macOS** | `polly -c monitor CPU usage` | `top -l 1 \| grep "CPU usage"` |
+| **Windows** | `polly -c monitor CPU usage` | `Get-Counter '\Processor(_Total)\% Processor Time'` |
 
 ### 3️⃣ Debug Mode (`-d, --debug`)
 
@@ -231,7 +231,7 @@ polly -d error_trace.log
 python script.py 2>&1 | polly -d
 
 # Debug from clipboard
-polly -d "TypeError: cannot concatenate 'str' and 'int'"
+polly -d TypeError: cannot concatenate 'str' and 'int'
 ```
 
 ### 4️⃣ Refactor Mode (`-r, --refactor`)
@@ -255,7 +255,7 @@ Translate text or entire files to any language.
 
 ```bash
 # Translate text
-polly -t spanish "Good morning, how are you?"
+polly -t spanish Good morning, how are you?
 
 # Translate file
 polly -tf french README.md
@@ -308,13 +308,13 @@ General-purpose AI assistant.
 
 ```bash
 # Ask anything
-polly "Explain quantum entanglement"
+polly Explain quantum entanglement
 
 # Get advice
-polly "Best practices for API design"
+polly Best practices for API design
 
 # Problem solving
-polly "My server is running slow, what should I check?"
+polly My server is running slow, what should I check?
 ```
 
 ---
@@ -371,7 +371,7 @@ Polly supports multiple AI models with different strengths:
 polly --list-models
 
 # Use a specific model
-polly --model gemini "Fast query"
+polly --model gemini Fast query
 polly --model openai-large "Complex reasoning"
 polly --model qwen-coder "Code generation"
 
@@ -401,7 +401,7 @@ polly --set-language en
 polly --set-language pt
 
 # Use language for single query
-polly -l en "Generate a report"
+polly -l en Generate a report
 ```
 
 ### Temperature Control
@@ -435,20 +435,20 @@ polly --reset-config
 Get responses in real-time:
 
 ```bash
-polly -s "Write a long explanation of neural networks"
+polly -s Write a long explanation of neural networks
 ```
 
 ### Output Options
 
 ```bash
 # Save to text file
-polly "Explain Git" -o git_guide.txt
+polly Explain Git -o git_guide.txt
 
 # Save as PDF
-polly "Python best practices" --pdf python_guide.pdf
+polly Python best practices --pdf python_guide.pdf
 
 # JSON output (for scripting)
-polly --json "What is DevOps?"
+polly --json What is DevOps?
 ```
 
 ### PDF Operations
@@ -461,7 +461,7 @@ polly -e technical_manual.pdf
 polly -d code_review.pdf
 
 # Generate PDF output
-polly "Docker tutorial" --pdf docker_tutorial.pdf
+polly Docker tutorial --pdf docker_tutorial.pdf
 
 # Combined: Read PDF and output PDF
 polly -e input.pdf --pdf output_summary.pdf
@@ -501,48 +501,48 @@ git show HEAD:old_file.py | polly -r
 
 ```bash
 # System commands
-polly -c "show disk usage by directory"
-polly -c "find processes using port 8080"
+polly -c show disk usage by directory
+polly -c find processes using port 8080
 
 # Package management
-polly -c "update all packages Ubuntu"
-polly -c "install nginx Arch Linux"
+polly -c update all packages Ubuntu
+polly -c install nginx Arch Linux
 
 # File operations
-polly -c "find duplicate files"
-polly -c "batch rename files"
+polly -c find duplicate files
+polly -c batch rename files
 ```
 
 ### macOS
 
 ```bash
 # macOS specific
-polly -c "show all files in Finder"
-polly -c "flush DNS cache"
+polly -c show all files in Finder
+polly -c flush DNS cache
 
 # Homebrew
-polly -c "install Python with Homebrew"
-polly -c "update all brew packages"
+polly -c install Python with Homebrew
+polly -c update all brew packages
 
 # System info
-polly -c "check battery health"
-polly -c "show connected wifi networks"
+polly -c check battery health
+polly -c show connected wifi networks
 ```
 
 ### Windows
 
 ```bash
 # PowerShell commands
-polly -c "list installed programs"
-polly -c "check network connections"
+polly -c list installed programs
+polly -c check network connections
 
 # File operations
-polly -c "find files larger than 1GB"
-polly -c "copy folder with progress"
+polly -c find files larger than 1GB
+polly -c copy folder with progress
 
 # System management
-polly -c "restart Windows service"
-polly -c "check Windows version"
+polly -c restart Windows service
+polly -c check Windows version
 ```
 
 ---
@@ -571,7 +571,7 @@ The dashboard is a separate component. Check the `dashboard/` directory for setu
 
 ```bash
 # Get command and save to file
-polly -c "backup postgres database" -o backup_script.sh
+polly -c backup postgres database -o backup_script.sh
 
 # Explain and save as PDF
 polly -e complex_script.sh --pdf explanation.pdf
@@ -620,7 +620,7 @@ fi
 # .git/hooks/commit-msg - Auto-improve commit messages
 #!/bin/bash
 commit_msg=$(cat "$1")
-improved=$(echo "$commit_msg" | polly "Improve this commit message")
+improved=$(echo "$commit_msg" | polly Improve this commit message)
 echo "$improved" > "$1"
 ```
 
@@ -633,7 +633,7 @@ git diff | polly -d >> review.txt
 git diff | polly -r >> review.txt
 
 # Learning new commands
-polly -ce "extract tar.gz file" | tee cheatsheet.txt
+polly -ce extract tar.gz file | tee cheatsheet.txt
 
 # Multi-language documentation
 polly -e README.md -o README_explained.txt
