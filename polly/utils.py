@@ -216,6 +216,187 @@ def truncate_context(messages: list, max_chars: int = 5000) -> list:
     return truncated
 
 
+def interactive_temperature_selection(config) -> Optional[float]:
+    """
+    Show interactive temperature preset selection menu.
+
+    Args:
+        config: Configuration instance
+
+    Returns:
+        Selected temperature value or None if cancelled
+    """
+    from .config import TEMPERATURE_PRESETS
+
+    current_temp = config.get("temperature", 0.7)
+
+    # Get current language for descriptions
+    current_lang = config.get_effective_language()
+    desc_key = "description_pt" if current_lang == "pt" else "description"
+
+    print_info(f"{get_text('msg.temperature_presets')}\n")
+
+    # Display numbered list
+    presets = list(TEMPERATURE_PRESETS.items())
+    for idx, (preset_name, preset_data) in enumerate(presets, 1):
+        value = preset_data["value"]
+        description = preset_data[desc_key]
+        is_current = " ✓" if abs(value - current_temp) < 0.01 else ""
+
+        console.print(f"  [cyan]{idx}.[/cyan] [bold]{preset_name.title():12}[/bold] ({value}) - {description}[green]{is_current}[/green]")
+
+    # Add custom option
+    console.print(f"  [cyan]{len(presets) + 1}.[/cyan] [bold]Custom[/bold]      (0.0-3.0) - {get_text('msg.custom_value')}")
+
+    print()
+
+    # Get user input
+    try:
+        user_input = input(f"Select preset (1-{len(presets) + 1}, or 'cancel'): ").strip()
+
+        if user_input.lower() in ['cancel', 'quit', 'exit', 'q', '']:
+            print_info(get_text("msg.cancelled"))
+            return None
+
+        # Try parsing as number
+        if user_input.isdigit():
+            idx = int(user_input)
+            if 1 <= idx <= len(presets):
+                preset_name = presets[idx - 1][0]
+                return TEMPERATURE_PRESETS[preset_name]["value"]
+            elif idx == len(presets) + 1:
+                # Custom value
+                try:
+                    custom_input = input(f"{get_text('msg.enter_temperature')} (0.0-3.0): ").strip()
+                    custom_value = float(custom_input)
+                    if 0.0 <= custom_value <= 3.0:
+                        return custom_value
+                    else:
+                        print_error(f"{get_text('msg.invalid_temperature')} (0.0-3.0)")
+                        return None
+                except ValueError:
+                    print_error(get_text("msg.invalid_number"))
+                    return None
+            else:
+                print_error(f"{get_text('msg.invalid_selection')} 1-{len(presets) + 1}")
+                return None
+
+        # Try as preset name (exact or partial match)
+        preset_names = [name for name, _ in presets]
+        if user_input.lower() in preset_names:
+            return TEMPERATURE_PRESETS[user_input.lower()]["value"]
+
+        # Partial match
+        matches = [name for name in preset_names if user_input.lower() in name.lower()]
+        if len(matches) == 1:
+            print_info(f"{get_text('msg.auto_selected')} {matches[0]}")
+            return TEMPERATURE_PRESETS[matches[0]]["value"]
+        elif len(matches) > 1:
+            print_error(f"{get_text('msg.ambiguous_input')} {', '.join(matches)}")
+            return None
+        else:
+            # Try as direct numeric value
+            try:
+                value = float(user_input)
+                if 0.0 <= value <= 3.0:
+                    return value
+                else:
+                    print_error(f"{get_text('msg.invalid_temperature')} (0.0-3.0)")
+                    return None
+            except ValueError:
+                print_error(f"{get_text('msg.unknown_preset')} {user_input}")
+                return None
+
+    except KeyboardInterrupt:
+        print("\n")
+        print_info(get_text("msg.cancelled"))
+        return None
+    except Exception as e:
+        print_error(f"{get_text('label.error')} {str(e)}")
+        return None
+
+
+def interactive_language_selection(config) -> Optional[str]:
+    """
+    Show interactive language selection menu.
+
+    Args:
+        config: Configuration instance
+
+    Returns:
+        Selected language code or None if cancelled
+    """
+    from .config import detect_language
+
+    current_lang = config.get("language", "auto")
+    detected_lang = detect_language()
+
+    # Language options
+    languages = [
+        {"code": "auto", "name": get_text("lang.auto", lang="en"), "name_pt": get_text("lang.auto", lang="pt")},
+        {"code": "en", "name": "English", "name_pt": "Inglês"},
+        {"code": "pt", "name": "Portuguese", "name_pt": "Português"},
+    ]
+
+    print_info(f"{get_text('msg.available_languages')}\n")
+
+    # Show detected language
+    if current_lang == "auto":
+        detected_display = "English" if detected_lang == "en" else "Português"
+        console.print(f"  [dim]Detected: {detected_display}[/dim]\n")
+
+    # Display numbered list
+    for idx, lang in enumerate(languages, 1):
+        is_current = " ✓" if lang["code"] == current_lang else ""
+        # Show name in both languages
+        display_name = f"{lang['name']} / {lang['name_pt']}" if lang["code"] != "auto" else lang["name"]
+        console.print(f"  [cyan]{idx}.[/cyan] [bold]{display_name}[/bold][green]{is_current}[/green]")
+
+    print()
+
+    # Get user input
+    try:
+        user_input = input(f"Select language (1-{len(languages)}, or 'cancel'): ").strip()
+
+        if user_input.lower() in ['cancel', 'quit', 'exit', 'q', '']:
+            print_info(get_text("msg.cancelled"))
+            return None
+
+        # Try parsing as number
+        if user_input.isdigit():
+            idx = int(user_input)
+            if 1 <= idx <= len(languages):
+                return languages[idx - 1]["code"]
+            else:
+                print_error(f"{get_text('msg.invalid_selection')} 1-{len(languages)}")
+                return None
+
+        # Try as language code (exact match)
+        lang_codes = [lang["code"] for lang in languages]
+        if user_input.lower() in lang_codes:
+            return user_input.lower()
+
+        # Try partial match
+        matches = [lang["code"] for lang in languages if user_input.lower() in lang["name"].lower() or user_input.lower() in lang["name_pt"].lower()]
+        if len(matches) == 1:
+            print_info(f"{get_text('msg.auto_selected')} {matches[0]}")
+            return matches[0]
+        elif len(matches) > 1:
+            print_error(f"{get_text('msg.ambiguous_input')} {', '.join(matches)}")
+            return None
+        else:
+            print_error(f"{get_text('msg.unknown_language')} {user_input}")
+            return None
+
+    except KeyboardInterrupt:
+        print("\n")
+        print_info(get_text("msg.cancelled"))
+        return None
+    except Exception as e:
+        print_error(f"{get_text('label.error')} {str(e)}")
+        return None
+
+
 def interactive_model_selection(config) -> Optional[str]:
     """
     Show interactive model selection menu.

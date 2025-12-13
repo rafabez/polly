@@ -89,10 +89,11 @@ def print_help():
 
     config_table.add_row("--config", get_text("config.view"))
     config_table.add_row("-M, --set-default-model", get_text("config.set_model"))
-    config_table.add_row("--set-language LANG", get_text("config.set_language"))
+    config_table.add_row("-L, --set-language", get_text("config.set_language"))
+    config_table.add_row("-T, --set-temperature", get_text("config.set_temperature"))
     config_table.add_row("--set-os OS", get_text("config.set_os"))
     config_table.add_row("--show-os", get_text("config.show_os"))
-    config_table.add_row("--reset-config", get_text("config.reset"))
+    config_table.add_row("-R, --reset-config", get_text("config.reset"))
 
     console.print(config_table)
     console.print()

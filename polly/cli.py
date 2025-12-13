@@ -178,15 +178,24 @@ def create_parser() -> argparse.ArgumentParser:
         help="Set default model (interactive if no model specified)"
     )
     config_group.add_argument(
-        "--reset-config",
+        "-R", "--reset-config",
         action="store_true",
         help="Reset configuration to defaults"
     )
     config_group.add_argument(
-        "--set-language",
+        "-L", "--set-language",
         metavar="LANG",
-        choices=["pt", "en", "pt-br", "portuguese", "english"],
-        help="Set default prompt language"
+        nargs="?",
+        const="__interactive__",
+        choices=["pt", "en", "pt-br", "portuguese", "english", "__interactive__"],
+        help="Set default prompt language (interactive if no language specified)"
+    )
+    config_group.add_argument(
+        "-T", "--set-temperature",
+        metavar="PRESET",
+        nargs="?",
+        const="__interactive__",
+        help="Set default temperature preset (interactive if no preset specified)"
     )
     config_group.add_argument(
         "--set-os",
@@ -283,8 +292,9 @@ def validate_args(args) -> Optional[str]:
         args.list_models or
         args.list_modes or
         args.reset_config or
-        args.set_default_model or
-        args.set_language or
+        args.set_default_model is not None or
+        args.set_language is not None or
+        args.set_temperature is not None or
         args.set_os or
         args.show_os
     )

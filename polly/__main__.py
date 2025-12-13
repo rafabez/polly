@@ -12,9 +12,10 @@ from .api import PollinationsAPI
 from .config import get_config, AVAILABLE_MODELS
 from .prompts import get_prompt, get_available_modes
 from .utils import (
-    print_response, print_error, print_info, print_success,
+    print_response, print_error, print_info, print_success, print_warning,
     print_code, read_stdin, read_file, stream_response,
-    show_spinner, truncate_context, interactive_model_selection
+    show_spinner, truncate_context, interactive_model_selection,
+    interactive_language_selection, interactive_temperature_selection
 )
 from .i18n import get_text
 
@@ -81,16 +82,84 @@ def handle_config_commands(args):
         return True
 
     if args.reset_config:
-        config.reset_to_defaults()
-        print_success(get_text("msg.config_reset"))
+        # Show warning and current config
+        print_warning(get_text("msg.reset_warning"))
+        print()
+        print_info(get_text("msg.reset_current"))
+        for key, value in config.config.items():
+            print(f"  • {key}: {value}")
+        print()
+
+        # Ask for confirmation
+        try:
+            confirmation = input(get_text("msg.reset_confirm") + " ").strip().lower()
+            if confirmation in ['y', 's', 'yes', 'sim']:
+                config.reset_to_defaults()
+                print_success(get_text("msg.config_reset"))
+            else:
+                print_info(get_text("msg.reset_aborted"))
+        except KeyboardInterrupt:
+            print("\n")
+            print_info(get_text("msg.reset_aborted"))
         return True
 
-    if args.set_language:
-        config.set("language", args.set_language)
-        if config.save_config():
-            print_success(f"{get_text('msg.language_set')} {args.set_language}")
+    if args.set_language is not None:
+        # Interactive mode - show language selection menu
+        if args.set_language == "__interactive__":
+            selected_lang = interactive_language_selection(config)
+            if selected_lang:
+                config.set("language", selected_lang)
+                if config.save_config():
+                    print_success(f"{get_text('msg.language_set')} {selected_lang}")
+                else:
+                    print_error(get_text("msg.config_failed"))
+            # If None, user cancelled - just return
         else:
-            print_error(get_text("msg.config_failed"))
+            # Direct mode - set language directly
+            config.set("language", args.set_language)
+            if config.save_config():
+                print_success(f"{get_text('msg.language_set')} {args.set_language}")
+            else:
+                print_error(get_text("msg.config_failed"))
+        return True
+
+    if args.set_temperature is not None:
+        # Interactive mode - show temperature preset selection menu
+        if args.set_temperature == "__interactive__":
+            selected_temp = interactive_temperature_selection(config)
+            if selected_temp is not None:
+                config.set("temperature", selected_temp)
+                if config.save_config():
+                    print_success(f"{get_text('msg.temperature_set')} {selected_temp}")
+                else:
+                    print_error(get_text("msg.config_failed"))
+            # If None, user cancelled - just return
+        else:
+            # Direct mode - set temperature directly (preset name or numeric value)
+            from .config import TEMPERATURE_PRESETS
+
+            # Check if it's a preset name
+            if args.set_temperature.lower() in TEMPERATURE_PRESETS:
+                temp_value = TEMPERATURE_PRESETS[args.set_temperature.lower()]["value"]
+                config.set("temperature", temp_value)
+                if config.save_config():
+                    print_success(f"{get_text('msg.temperature_set')} {temp_value} ({args.set_temperature})")
+                else:
+                    print_error(get_text("msg.config_failed"))
+            else:
+                # Try as numeric value
+                try:
+                    temp_value = float(args.set_temperature)
+                    if 0.0 <= temp_value <= 3.0:
+                        config.set("temperature", temp_value)
+                        if config.save_config():
+                            print_success(f"{get_text('msg.temperature_set')} {temp_value}")
+                        else:
+                            print_error(get_text("msg.config_failed"))
+                    else:
+                        print_error(f"{get_text('msg.invalid_temperature')} (0.0-3.0)")
+                except ValueError:
+                    print_error(f"{get_text('msg.unknown_preset')} {args.set_temperature}")
         return True
 
     if args.set_os:

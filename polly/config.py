@@ -119,6 +119,14 @@ AVAILABLE_MODELS = {
     "gemini-search": "Gemini 2.5 Flash Lite with Google Search",
 }
 
+# Temperature Presets
+TEMPERATURE_PRESETS = {
+    "precise": {"value": 0.3, "description": "For commands and code", "description_pt": "Para comandos e código"},
+    "balanced": {"value": 0.7, "description": "General purpose (default)", "description_pt": "Uso geral (padrão)"},
+    "creative": {"value": 1.5, "description": "Writing and brainstorming", "description_pt": "Escrita e brainstorming"},
+    "wild": {"value": 2.5, "description": "Experimental responses", "description_pt": "Respostas experimentais"},
+}
+
 # API Configuration
 API_BASE_URL = "https://text.pollinations.ai"  # Direct API (fallback)
 API_TIMEOUT = 90  # Request timeout (90s - API can be slow)
