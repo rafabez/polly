@@ -216,6 +216,107 @@ def truncate_context(messages: list, max_chars: int = 5000) -> list:
     return truncated
 
 
+def interactive_os_selection(config) -> Optional[str]:
+    """
+    Show interactive OS selection menu.
+
+    Args:
+        config: Configuration instance
+
+    Returns:
+        Selected OS value or None if cancelled
+    """
+    from .config import detect_os, normalize_os
+
+    current_os = config.get("os", "auto")
+    detected_os = detect_os()
+
+    # OS options
+    os_options = [
+        {"code": "auto", "name": "Auto-detect", "name_pt": "Auto-detectar"},
+        {"code": "linux", "name": "Linux", "name_pt": "Linux"},
+        {"code": "darwin", "name": "macOS", "name_pt": "macOS"},
+        {"code": "windows", "name": "Windows", "name_pt": "Windows"},
+    ]
+
+    print_info(f"{get_text('msg.os_selection')}\n")
+
+    # Show detected OS
+    detected_display = "macOS" if detected_os == "darwin" else detected_os.title()
+    console.print(f"  [dim]Detected: {detected_display}[/dim]\n")
+
+    # Display numbered list
+    for idx, os_opt in enumerate(os_options, 1):
+        code = os_opt["code"]
+        # Normalize current_os for comparison
+        normalized_current = current_os
+        if current_os == "macos":
+            normalized_current = "darwin"
+
+        is_current = " ✓" if code == normalized_current else ""
+
+        # Use appropriate name based on language
+        current_lang = config.get_effective_language()
+        name = os_opt["name_pt"] if current_lang == "pt" else os_opt["name"]
+
+        # Show detected OS hint for auto
+        if code == "auto":
+            name = f"{name} ({detected_display})"
+
+        console.print(f"  [cyan]{idx}.[/cyan] [bold]{name:25}[/bold][green]{is_current}[/green]")
+
+    print()
+
+    # Get user input
+    try:
+        user_input = input(f"Select OS (1-{len(os_options)}, or 'cancel'): ").strip()
+
+        if user_input.lower() in ['cancel', 'quit', 'exit', 'q', '']:
+            print_info(get_text("msg.cancelled"))
+            return None
+
+        # Try parsing as number
+        if user_input.isdigit():
+            idx = int(user_input)
+            if 1 <= idx <= len(os_options):
+                return os_options[idx - 1]["code"]
+            else:
+                print_error(f"{get_text('msg.invalid_selection')} 1-{len(os_options)}")
+                return None
+
+        # Try as OS name (exact or partial match, case-insensitive)
+        user_lower = user_input.lower()
+
+        # Handle macos alias
+        if user_lower in ["macos", "mac", "osx"]:
+            return "darwin"
+
+        # Exact match
+        os_codes = [opt["code"] for opt in os_options]
+        if user_lower in os_codes:
+            return user_lower
+
+        # Partial match
+        matches = [opt["code"] for opt in os_options if user_lower in opt["name"].lower()]
+        if len(matches) == 1:
+            print_info(f"{get_text('msg.auto_selected')} {matches[0]}")
+            return matches[0]
+        elif len(matches) > 1:
+            print_error(f"{get_text('msg.ambiguous_input')} {', '.join(matches)}")
+            return None
+        else:
+            print_error(f"{get_text('msg.unknown_os')} {user_input}")
+            return None
+
+    except KeyboardInterrupt:
+        print("\n")
+        print_info(get_text("msg.cancelled"))
+        return None
+    except Exception as e:
+        print_error(f"{get_text('label.error')} {str(e)}")
+        return None
+
+
 def interactive_temperature_selection(config) -> Optional[float]:
     """
     Show interactive temperature preset selection menu.
@@ -478,3 +579,207 @@ def interactive_model_selection(config) -> Optional[str]:
     except Exception as e:
         print_error(f"{get_text('label.error')} {str(e)}")
         return None
+
+
+def interactive_config_editor(config) -> bool:
+    """
+    Interactive configuration editor menu.
+
+    Args:
+        config: Configuration instance
+
+    Returns:
+        True if changes were made, False otherwise
+    """
+    from rich.panel import Panel
+    from rich.table import Table
+
+    changes_made = False
+
+    while True:
+        console.print()
+        console.print(Panel(
+            "[bold cyan]Configuration Editor[/bold cyan]\n"
+            "[dim]Current configuration settings[/dim]",
+            border_style="cyan"
+        ))
+        console.print()
+
+        # Display current configuration in a table
+        config_table = Table(show_header=True, box=None, padding=(0, 2))
+        config_table.add_column("Setting", style="cyan", width=20)
+        config_table.add_column("Value", style="green")
+
+        config_table.add_row("1. Model", config.get("default_model"))
+        config_table.add_row("2. Language", config.get("language"))
+        config_table.add_row("3. Temperature", str(config.get("temperature")))
+        config_table.add_row("4. OS", config.get("os"))
+        config_table.add_row("5. Stream", str(config.get("stream")))
+
+        console.print(config_table)
+        console.print()
+        console.print("[dim]Options: [cyan]1-5[/cyan] to edit, [cyan]s[/cyan] to save, [cyan]q[/cyan] to quit[/dim]")
+        console.print()
+
+        try:
+            choice = input("Select option: ").strip().lower()
+
+            if choice in ['q', 'quit', 'exit']:
+                if changes_made:
+                    save_prompt = input("Save changes before exiting? (y/N): ").strip().lower()
+                    if save_prompt in ['y', 'yes', 's', 'sim']:
+                        if config.save_config():
+                            print_success(get_text("msg.config_saved"))
+                        else:
+                            print_error(get_text("msg.config_failed"))
+                return changes_made
+
+            if choice in ['s', 'save']:
+                if config.save_config():
+                    print_success(get_text("msg.config_saved"))
+                    changes_made = False
+                else:
+                    print_error(get_text("msg.config_failed"))
+                continue
+
+            # Edit model
+            if choice == '1':
+                console.print()
+                selected_model = interactive_model_selection(config)
+                if selected_model:
+                    config.set("default_model", selected_model)
+                    changes_made = True
+                    print_success(f"{get_text('msg.model_set')} {selected_model}")
+
+            # Edit language
+            elif choice == '2':
+                console.print()
+                selected_lang = interactive_language_selection(config)
+                if selected_lang:
+                    config.set("language", selected_lang)
+                    changes_made = True
+                    print_success(f"{get_text('msg.language_set')} {selected_lang}")
+
+            # Edit temperature
+            elif choice == '3':
+                console.print()
+                selected_temp = interactive_temperature_selection(config)
+                if selected_temp is not None:
+                    config.set("temperature", selected_temp)
+                    changes_made = True
+                    print_success(f"{get_text('msg.temperature_set')} {selected_temp}")
+
+            # Edit OS
+            elif choice == '4':
+                console.print()
+                selected_os = interactive_os_selection(config)
+                if selected_os:
+                    config.set("os", selected_os)
+                    changes_made = True
+                    display_os = "macos" if selected_os == "darwin" else selected_os
+                    print_success(f"{get_text('msg.os_set')} {display_os}")
+
+            # Edit stream
+            elif choice == '5':
+                current_stream = config.get("stream", False)
+                new_stream = not current_stream
+                config.set("stream", new_stream)
+                changes_made = True
+                print_success(f"Stream set to: {new_stream}")
+
+            else:
+                print_error(get_text("msg.invalid_selection"))
+
+        except KeyboardInterrupt:
+            print("\n")
+            if changes_made:
+                save_prompt = input("Save changes before exiting? (y/N): ").strip().lower()
+                if save_prompt in ['y', 'yes', 's', 'sim']:
+                    if config.save_config():
+                        print_success(get_text("msg.config_saved"))
+                    else:
+                        print_error(get_text("msg.config_failed"))
+            return changes_made
+
+
+def run_first_time_setup(config) -> bool:
+    """
+    Run first-time setup wizard for new users.
+
+    Args:
+        config: Configuration instance
+
+    Returns:
+        True if setup was completed, False if skipped
+    """
+    from rich.panel import Panel
+
+    # Welcome message
+    console.print()
+    console.print(Panel(
+        "[bold cyan]Welcome to Polly AI![/bold cyan]\n\n"
+        "Let's set up your preferences.\n"
+        "[dim]You can change these settings anytime with config commands.[/dim]",
+        border_style="cyan",
+        title="[bold]First-Time Setup[/bold]"
+    ))
+    console.print()
+
+    # Ask if user wants to run setup
+    try:
+        response = input("Run setup wizard? (Y/n): ").strip().lower()
+        if response in ['n', 'no']:
+            print_info(get_text("msg.setup_skipped"))
+            # Save default config
+            config.save_config()
+            return False
+    except KeyboardInterrupt:
+        print("\n")
+        print_info(get_text("msg.setup_skipped"))
+        config.save_config()
+        return False
+
+    console.print()
+    console.print("[bold yellow]Step 1/3:[/bold yellow] Select your preferred language")
+    console.print()
+
+    # Language selection
+    selected_lang = interactive_language_selection(config)
+    if selected_lang:
+        config.set("language", selected_lang)
+
+    console.print()
+    console.print("[bold yellow]Step 2/3:[/bold yellow] Select your default AI model")
+    console.print()
+
+    # Model selection
+    selected_model = interactive_model_selection(config)
+    if selected_model:
+        config.set("default_model", selected_model)
+
+    console.print()
+    console.print("[bold yellow]Step 3/3:[/bold yellow] Select temperature preset")
+    console.print()
+
+    # Temperature selection
+    selected_temp = interactive_temperature_selection(config)
+    if selected_temp is not None:
+        config.set("temperature", selected_temp)
+
+    # Save configuration
+    if config.save_config():
+        console.print()
+        console.print(Panel(
+            "[bold green]Setup complete![/bold green]\n\n"
+            f"Model: [cyan]{config.get('default_model')}[/cyan]\n"
+            f"Language: [cyan]{config.get('language')}[/cyan]\n"
+            f"Temperature: [cyan]{config.get('temperature')}[/cyan]\n\n"
+            "[dim]Use 'polly -h' to see all available options.[/dim]",
+            border_style="green",
+            title="[bold]Configuration Saved[/bold]"
+        ))
+        console.print()
+        return True
+    else:
+        print_error(get_text("msg.config_failed"))
+        return False

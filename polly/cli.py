@@ -165,9 +165,9 @@ def create_parser() -> argparse.ArgumentParser:
     # Configuration
     config_group = parser.add_argument_group("configuration")
     config_group.add_argument(
-        "--config",
+        "-C", "--config",
         action="store_true",
-        help="Open configuration file"
+        help="Interactive configuration editor"
     )
     config_group.add_argument(
         "-M", "--set-default-model",
@@ -198,25 +198,47 @@ def create_parser() -> argparse.ArgumentParser:
         help="Set default temperature preset (interactive if no preset specified)"
     )
     config_group.add_argument(
-        "--set-os",
+        "-O", "--set-os",
         metavar="OS",
-        help="Set default OS for command generation (auto, linux, macos, windows - case-insensitive)"
+        nargs="?",
+        const="__interactive__",
+        help="Set default OS (interactive if no OS specified)"
     )
     config_group.add_argument(
         "--show-os",
         action="store_true",
         help="Display detected/configured OS"
     )
+    config_group.add_argument(
+        "--save-profile",
+        metavar="NAME",
+        help="Save current configuration as a named profile"
+    )
+    config_group.add_argument(
+        "--load-profile",
+        metavar="NAME",
+        help="Load a named profile"
+    )
+    config_group.add_argument(
+        "--list-profiles",
+        action="store_true",
+        help="List all saved profiles"
+    )
+    config_group.add_argument(
+        "--delete-profile",
+        metavar="NAME",
+        help="Delete a named profile"
+    )
     
     # Info
     info_group = parser.add_argument_group("information")
     info_group.add_argument(
-        "--list-models",
+        "-lm", "--list-models",
         action="store_true",
         help="List available AI models"
     )
     info_group.add_argument(
-        "--list-modes",
+        "-lmo", "--list-modes",
         action="store_true",
         help="List available prompt modes"
     )
@@ -296,7 +318,11 @@ def validate_args(args) -> Optional[str]:
         args.set_language is not None or
         args.set_temperature is not None or
         args.set_os or
-        args.show_os
+        args.show_os or
+        args.save_profile or
+        args.load_profile or
+        args.list_profiles or
+        args.delete_profile
     )
     
     if needs_prompt and not args.prompt and not args.explain:

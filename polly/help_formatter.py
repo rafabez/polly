@@ -87,12 +87,16 @@ def print_help():
     config_table.add_column(style="blue", width=25)
     config_table.add_column(style="white")
 
-    config_table.add_row("--config", get_text("config.view"))
+    config_table.add_row("-C, --config", get_text("config.view"))
     config_table.add_row("-M, --set-default-model", get_text("config.set_model"))
     config_table.add_row("-L, --set-language", get_text("config.set_language"))
     config_table.add_row("-T, --set-temperature", get_text("config.set_temperature"))
-    config_table.add_row("--set-os OS", get_text("config.set_os"))
+    config_table.add_row("-O, --set-os", get_text("config.set_os"))
     config_table.add_row("--show-os", get_text("config.show_os"))
+    config_table.add_row("--save-profile NAME", get_text("config.save_profile"))
+    config_table.add_row("--load-profile NAME", get_text("config.load_profile"))
+    config_table.add_row("--list-profiles", get_text("config.list_profiles"))
+    config_table.add_row("--delete-profile NAME", get_text("config.delete_profile"))
     config_table.add_row("-R, --reset-config", get_text("config.reset"))
 
     console.print(config_table)
@@ -104,8 +108,8 @@ def print_help():
     info_table.add_column(style="yellow", width=25)
     info_table.add_column(style="white")
 
-    info_table.add_row("--list-models", get_text("info.list_models"))
-    info_table.add_row("--list-modes", get_text("info.list_modes"))
+    info_table.add_row("-lm, --list-models", get_text("info.list_models"))
+    info_table.add_row("-lmo, --list-modes", get_text("info.list_modes"))
     info_table.add_row("-v, --version", get_text("info.version"))
     info_table.add_row("-h, --help", get_text("info.help"))
 

@@ -45,11 +45,15 @@ TRANSLATIONS = {
         "output.no_markdown": "Disable markdown formatting",
 
         # Configuration
-        "config.view": "View/open configuration file",
+        "config.view": "Interactive configuration editor",
+        "config.save_profile": "Save current config as named profile",
+        "config.load_profile": "Load a named profile",
+        "config.list_profiles": "List all saved profiles",
+        "config.delete_profile": "Delete a named profile",
         "config.set_model": "Set default model (interactive if no model specified)",
         "config.set_language": "Set default prompt language (interactive if no language specified)",
         "config.set_temperature": "Set default temperature preset (interactive if no preset specified)",
-        "config.set_os": "Set target OS for commands (auto/linux/macos/windows)",
+        "config.set_os": "Set target OS for commands (interactive if no OS specified)",
         "config.show_os": "Show detected and configured OS",
         "config.reset": "Reset to default configuration",
 
@@ -118,6 +122,16 @@ TRANSLATIONS = {
         "msg.invalid_temperature": "Temperature must be between",
         "msg.invalid_number": "Invalid number",
         "msg.unknown_preset": "Unknown preset:",
+        "msg.os_selection": "Operating System Selection:",
+        "msg.unknown_os": "Unknown OS:",
+        "msg.setup_skipped": "Setup skipped. Using default configuration.",
+        "msg.profile_saved": "Profile saved:",
+        "msg.profile_loaded": "Profile loaded:",
+        "msg.profile_deleted": "Profile deleted:",
+        "msg.profile_not_found": "Profile not found:",
+        "msg.available_profiles": "Available Profiles:",
+        "msg.no_profiles": "No profiles found. Create one with --save-profile NAME",
+        "msg.config_saved": "Configuration saved successfully",
 
         # Error messages (from api.py)
         "error.timeout": "Timeout: Model '{model}' took too long to respond.",
@@ -211,11 +225,15 @@ TRANSLATIONS = {
         "output.no_markdown": "Desabilita formatação markdown",
 
         # Configuration
-        "config.view": "Ver/abrir arquivo de configuração",
+        "config.view": "Editor de configuração interativo",
+        "config.save_profile": "Salvar configuração atual como perfil nomeado",
+        "config.load_profile": "Carregar um perfil nomeado",
+        "config.list_profiles": "Listar todos os perfis salvos",
+        "config.delete_profile": "Deletar um perfil nomeado",
         "config.set_model": "Define modelo padrão (interativo se nenhum modelo especificado)",
         "config.set_language": "Define idioma padrão dos prompts (interativo se nenhum idioma especificado)",
         "config.set_temperature": "Define preset de temperature padrão (interativo se nenhum preset especificado)",
-        "config.set_os": "Definir OS alvo para comandos (auto/linux/macos/windows)",
+        "config.set_os": "Definir OS alvo para comandos (interativo se nenhum OS especificado)",
         "config.show_os": "Mostrar OS detectado e configurado",
         "config.reset": "Reseta para configuração padrão",
 
@@ -284,6 +302,16 @@ TRANSLATIONS = {
         "msg.invalid_temperature": "Temperature deve estar entre",
         "msg.invalid_number": "Número inválido",
         "msg.unknown_preset": "Preset desconhecido:",
+        "msg.os_selection": "Seleção de Sistema Operacional:",
+        "msg.unknown_os": "SO desconhecido:",
+        "msg.setup_skipped": "Configuração pulada. Usando configuração padrão.",
+        "msg.profile_saved": "Perfil salvo:",
+        "msg.profile_loaded": "Perfil carregado:",
+        "msg.profile_deleted": "Perfil deletado:",
+        "msg.profile_not_found": "Perfil não encontrado:",
+        "msg.available_profiles": "Perfis Disponíveis:",
+        "msg.no_profiles": "Nenhum perfil encontrado. Crie um com --save-profile NOME",
+        "msg.config_saved": "Configuração salva com sucesso",
 
         # Error messages
         "error.timeout": "Timeout: O modelo '{model}' demorou muito para responder.",

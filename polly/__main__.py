@@ -15,7 +15,8 @@ from .utils import (
     print_response, print_error, print_info, print_success, print_warning,
     print_code, read_stdin, read_file, stream_response,
     show_spinner, truncate_context, interactive_model_selection,
-    interactive_language_selection, interactive_temperature_selection
+    interactive_language_selection, interactive_temperature_selection,
+    interactive_os_selection, run_first_time_setup, interactive_config_editor
 )
 from .i18n import get_text
 
@@ -162,20 +163,35 @@ def handle_config_commands(args):
                     print_error(f"{get_text('msg.unknown_preset')} {args.set_temperature}")
         return True
 
-    if args.set_os:
+    if args.set_os is not None:
         from .config import normalize_os
-        try:
-            # Normalize the OS value (handles case-insensitive input)
-            normalized_os = normalize_os(args.set_os)
-            config.set("os", normalized_os)
-            if config.save_config():
-                # Display normalized value and show user-friendly format
-                display_os = "macos" if normalized_os == "darwin" else normalized_os
-                print_success(f"{get_text('msg.os_set')} {display_os}")
-            else:
-                print_error(get_text("msg.config_failed"))
-        except ValueError as e:
-            print_error(str(e))
+
+        # Interactive mode - show OS selection menu
+        if args.set_os == "__interactive__":
+            selected_os = interactive_os_selection(config)
+            if selected_os:
+                config.set("os", selected_os)
+                if config.save_config():
+                    # Display normalized value and show user-friendly format
+                    display_os = "macos" if selected_os == "darwin" else selected_os
+                    print_success(f"{get_text('msg.os_set')} {display_os}")
+                else:
+                    print_error(get_text("msg.config_failed"))
+            # If None, user cancelled - just return
+        else:
+            # Direct mode - set OS directly
+            try:
+                # Normalize the OS value (handles case-insensitive input)
+                normalized_os = normalize_os(args.set_os)
+                config.set("os", normalized_os)
+                if config.save_config():
+                    # Display normalized value and show user-friendly format
+                    display_os = "macos" if normalized_os == "darwin" else normalized_os
+                    print_success(f"{get_text('msg.os_set')} {display_os}")
+                else:
+                    print_error(get_text("msg.config_failed"))
+            except ValueError as e:
+                print_error(str(e))
         return True
 
     if args.show_os:
@@ -196,17 +212,41 @@ def handle_config_commands(args):
         return True
 
     if args.config:
-        config_file = config.config_file
-        if config_file.exists():
-            print_info(f"{get_text('msg.config_file')} {config_file}")
-            print(f"\n{get_text('msg.current_config')}:")
-            for key, value in config.config.items():
-                print(f"  {key}: {value}")
-        else:
-            print_info(f"{get_text('msg.no_config')} {config_file}")
-            config.save_config()
+        # Launch interactive config editor
+        interactive_config_editor(config)
         return True
-    
+
+    if args.save_profile:
+        if config.save_profile(args.save_profile):
+            print_success(f"{get_text('msg.profile_saved')} {args.save_profile}")
+        else:
+            print_error(get_text("msg.config_failed"))
+        return True
+
+    if args.load_profile:
+        if config.load_profile(args.load_profile):
+            print_success(f"{get_text('msg.profile_loaded')} {args.load_profile}")
+        else:
+            print_error(f"{get_text('msg.profile_not_found')} {args.load_profile}")
+        return True
+
+    if args.list_profiles:
+        profiles = config.list_profiles()
+        if profiles:
+            print_info(f"{get_text('msg.available_profiles')}\n")
+            for profile in profiles:
+                print(f"  • {profile}")
+        else:
+            print_info(get_text("msg.no_profiles"))
+        return True
+
+    if args.delete_profile:
+        if config.delete_profile(args.delete_profile):
+            print_success(f"{get_text('msg.profile_deleted')} {args.delete_profile}")
+        else:
+            print_error(f"{get_text('msg.profile_not_found')} {args.delete_profile}")
+        return True
+
     return False
 
 
@@ -391,18 +431,42 @@ def main():
     """Main entry point"""
     parser = create_parser()
     args = parser.parse_args()
-    
+
     # Handle help
     if hasattr(args, 'help') and args.help:
         print_help()
         return
-    
+
     # Validate arguments
     error = validate_args(args)
     if error:
         print_error(error)
         sys.exit(1)
-    
+
+    # Get config instance early to check first-run status
+    config = get_config()
+
+    # Run first-time setup wizard if this is the first run
+    # Skip wizard if running config commands or help
+    is_config_command = (
+        args.config or
+        args.list_models or
+        args.list_modes or
+        args.reset_config or
+        args.set_default_model is not None or
+        args.set_language is not None or
+        args.set_temperature is not None or
+        args.set_os is not None or
+        args.show_os or
+        args.save_profile or
+        args.load_profile or
+        args.list_profiles or
+        args.delete_profile
+    )
+
+    if config.is_first_run and not is_config_command:
+        run_first_time_setup(config)
+
     # Handle config commands
     if handle_config_commands(args):
         return

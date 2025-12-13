@@ -137,10 +137,11 @@ NEW_API_BASE_URL = "https://enter.pollinations.ai/api/generate/v1"
 
 class Config:
     """Manages Polly configuration"""
-    
+
     def __init__(self):
         self.config_dir = Path.home() / ".config" / "polly"
         self.config_file = self.config_dir / "config.yaml"
+        self.is_first_run = not self.config_file.exists()
         self.config = self._load_config()
     
     def _load_config(self) -> Dict[str, Any]:
@@ -236,6 +237,94 @@ class Config:
         """Reset configuration to defaults"""
         self.config = DEFAULT_CONFIG.copy()
         self.save_config()
+
+    def save_profile(self, profile_name: str) -> bool:
+        """
+        Save current configuration as a named profile.
+
+        Args:
+            profile_name: Name of the profile to save
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            profiles_dir = self.config_dir / "profiles"
+            profiles_dir.mkdir(parents=True, exist_ok=True)
+
+            profile_file = profiles_dir / f"{profile_name}.yaml"
+            with open(profile_file, 'w') as f:
+                yaml.dump(self.config, f, default_flow_style=False)
+            return True
+        except Exception as e:
+            print(get_text("config.save_error", e=str(e)))
+            return False
+
+    def load_profile(self, profile_name: str) -> bool:
+        """
+        Load a named profile.
+
+        Args:
+            profile_name: Name of the profile to load
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            profiles_dir = self.config_dir / "profiles"
+            profile_file = profiles_dir / f"{profile_name}.yaml"
+
+            if not profile_file.exists():
+                return False
+
+            with open(profile_file, 'r') as f:
+                profile_config = yaml.safe_load(f) or {}
+
+            # Update current config with profile settings
+            self.config.update(profile_config)
+            # Save to main config
+            return self.save_config()
+        except Exception as e:
+            print(get_text("config.load_error", e=str(e)))
+            return False
+
+    def list_profiles(self) -> list:
+        """
+        List all available profiles.
+
+        Returns:
+            list: List of profile names
+        """
+        try:
+            profiles_dir = self.config_dir / "profiles"
+            if not profiles_dir.exists():
+                return []
+
+            profiles = [f.stem for f in profiles_dir.glob("*.yaml")]
+            return sorted(profiles)
+        except Exception:
+            return []
+
+    def delete_profile(self, profile_name: str) -> bool:
+        """
+        Delete a named profile.
+
+        Args:
+            profile_name: Name of the profile to delete
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            profiles_dir = self.config_dir / "profiles"
+            profile_file = profiles_dir / f"{profile_name}.yaml"
+
+            if profile_file.exists():
+                profile_file.unlink()
+                return True
+            return False
+        except Exception:
+            return False
 
 
 # Global config instance
