@@ -118,23 +118,33 @@ def print_help():
 
     # Examples
     console.print(f"[bold yellow]{get_text('help.examples')}[/bold yellow]")
-    examples = [
-        (get_text("example.basic"), "polly O que é recursão?"),
-        (get_text("example.command"), "polly -c listar arquivos grandes"),
-        (get_text("example.explain"), "polly -e script.sh"),
-        (get_text("example.explain"), "polly -e documento.pdf"),
-        (get_text("example.debug"), "polly -d api.py"),
-        (get_text("example.explain"), "polly -r code.py"),
-        (get_text("example.explain"), "polly Explique Docker --pdf output.pdf"),
-        (get_text("example.explain"), "cat api.py | polly"),
-        (get_text("example.explain"), "polly -i"),
-        (get_text("example.explain"), "polly -x"),
-        (get_text("example.model"), "polly --model deepseek Explique Docker"),
-    ]
 
-    for desc, cmd in examples:
-        console.print(f"  [dim]{desc}:[/dim]")
-        console.print(f"    [green]{cmd}[/green]")
+    # Basic usage examples
+    console.print("  [dim cyan]Basic Usage:[/dim cyan]")
+    console.print(f"    [green]polly {get_text('example.basic_query')}[/green]")
+    console.print(f"    [green]polly -c {get_text('example.command_query')}[/green]")
+    console.print(f"    [green]polly -e script.sh[/green]  [dim]({get_text('example.explain')})[/dim]")
+    console.print()
+
+    # Interactive config examples
+    console.print("  [dim cyan]Interactive Configuration:[/dim cyan]")
+    console.print(f"    [green]polly -M[/green]  [dim]({get_text('example.interactive_model')})[/dim]")
+    console.print(f"    [green]polly -L[/green]  [dim]({get_text('example.interactive_lang')})[/dim]")
+    console.print(f"    [green]polly -T[/green]  [dim]({get_text('example.interactive_temp')})[/dim]")
+    console.print(f"    [green]polly -C[/green]  [dim]({get_text('example.interactive_config')})[/dim]")
+    console.print()
+
+    # Profile examples
+    console.print("  [dim cyan]Configuration Profiles:[/dim cyan]")
+    console.print(f"    [green]polly --save-profile coding[/green]")
+    console.print(f"    [green]polly --load-profile coding[/green]")
+    console.print(f"    [green]polly --list-profiles[/green]")
+    console.print()
+
+    # Info commands with short flags
+    console.print("  [dim cyan]Quick Info Commands:[/dim cyan]")
+    console.print(f"    [green]polly -lm[/green]  [dim]({get_text('example.list_models')})[/dim]")
+    console.print(f"    [green]polly -lmo[/green]  [dim]({get_text('example.list_modes')})[/dim]")
 
     console.print()
 

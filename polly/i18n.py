@@ -71,6 +71,8 @@ TRANSLATIONS = {
 
         # Examples
         "example.basic": "Basic question",
+        "example.basic_query": "What is recursion?",
+        "example.command_query": "list large files",
         "example.explain": "Explain code",
         "example.command": "Generate command",
         "example.command_linux": "Generate Linux command",
@@ -78,6 +80,12 @@ TRANSLATIONS = {
         "example.command_windows": "Generate Windows command",
         "example.debug": "Debug error",
         "example.model": "Use specific model",
+        "example.interactive_model": "Select model interactively",
+        "example.interactive_lang": "Select language interactively",
+        "example.interactive_temp": "Select temperature preset interactively",
+        "example.interactive_config": "Edit all settings in one place",
+        "example.list_models": "List all models",
+        "example.list_modes": "List all modes",
 
         # Messages
         "msg.available_models": "Available AI Models:",
@@ -251,6 +259,8 @@ TRANSLATIONS = {
 
         # Examples
         "example.basic": "Pergunta básica",
+        "example.basic_query": "O que é recursão?",
+        "example.command_query": "listar arquivos grandes",
         "example.explain": "Explicar código",
         "example.command": "Gerar comando",
         "example.command_linux": "Gerar comando Linux",
@@ -258,6 +268,12 @@ TRANSLATIONS = {
         "example.command_windows": "Gerar comando Windows",
         "example.debug": "Debugar erro",
         "example.model": "Usar modelo específico",
+        "example.interactive_model": "Selecionar modelo interativamente",
+        "example.interactive_lang": "Selecionar idioma interativamente",
+        "example.interactive_temp": "Selecionar preset de temperature interativamente",
+        "example.interactive_config": "Editar todas configurações em um lugar",
+        "example.list_models": "Listar todos os modelos",
+        "example.list_modes": "Listar todos os modos",
 
         # Messages
         "msg.available_models": "Modelos de IA Disponíveis:",
