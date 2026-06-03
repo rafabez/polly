@@ -5,8 +5,7 @@ Command-line interface for Polly
 import argparse
 import sys
 from typing import Optional
-from .config import get_config, AVAILABLE_MODELS, fetch_text_models
-from .prompts import get_available_modes
+from .config import AVAILABLE_MODELS, fetch_text_models
 from . import __version__
 
 
@@ -49,14 +48,14 @@ def create_parser() -> argparse.ArgumentParser:
         add_help=False,  # Disable default help to use custom
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    
+
     # Positional argument for prompt
     parser.add_argument(
         "prompt",
         nargs="*",
         help="Your question or prompt (optional if using -e, -c, -d, etc.)"
     )
-    
+
     # Mode flags
     mode_group = parser.add_argument_group("modes")
     mode_group.add_argument(
@@ -119,7 +118,7 @@ def create_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Start interactive chat mode"
     )
-    
+
     # Model and parameters
     params_group = parser.add_argument_group("parameters")
     params_group.add_argument(
@@ -153,7 +152,7 @@ def create_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Don't use or update conversation memory for this query"
     )
-    
+
     # Output options
     output_group = parser.add_argument_group("output")
     output_group.add_argument(
@@ -176,7 +175,7 @@ def create_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Disable markdown formatting"
     )
-    
+
     # Configuration
     config_group = parser.add_argument_group("configuration")
     config_group.add_argument(
@@ -244,7 +243,7 @@ def create_parser() -> argparse.ArgumentParser:
         metavar="NAME",
         help="Delete a named profile"
     )
-    
+
     # Info
     info_group = parser.add_argument_group("information")
     info_group.add_argument(
@@ -278,7 +277,7 @@ def create_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Show this help message"
     )
-    
+
     return parser
 
 
@@ -311,7 +310,7 @@ def parse_args(argv: Optional[list] = None):
 def validate_args(args) -> Optional[str]:
     """
     Validate argument combinations
-    
+
     Returns:
         Error message if validation fails, None otherwise
     """
@@ -327,10 +326,10 @@ def validate_args(args) -> Optional[str]:
         args.interactive
     ]
     active_modes = sum(1 for m in modes if m)
-    
+
     if active_modes > 1:
         return "Error: Only one mode can be active at a time"
-    
+
     # Check if prompt is needed
     needs_prompt = not (
         args.interactive or
@@ -351,21 +350,21 @@ def validate_args(args) -> Optional[str]:
         args.context or
         args.forget
     )
-    
+
     if needs_prompt and not args.prompt and not args.explain:
         # Check if debug, refactor, or translate-file mode has a file
-        if (args.debug and args.debug != True) or (args.refactor and args.refactor != True) or args.translate_file:
+        if (args.debug and not args.debug) or (args.refactor and not args.refactor) or args.translate_file:
             # Has file, no need for prompt
             pass
         # Check if stdin has data
         elif sys.stdin.isatty():
             return "Error: No prompt provided. Use 'polly --help' for usage information."
-    
+
     # Validate temperature
     if args.temperature is not None:
         if args.temperature < 0.0 or args.temperature > 3.0:
             return "Error: Temperature must be between 0.0 and 3.0"
-    
+
     return None
 
 

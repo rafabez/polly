@@ -2,7 +2,6 @@
 PDF handling utilities for reading and writing PDFs
 """
 
-import sys
 from pathlib import Path
 from typing import Optional
 from rich.console import Console
@@ -19,11 +18,10 @@ except ImportError:
     PDF_READ_AVAILABLE = False
 
 try:
-    from reportlab.lib.pagesizes import letter, A4
+    from reportlab.lib.pagesizes import letter
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.units import inch
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
-    from reportlab.lib.enums import TA_LEFT, TA_JUSTIFY
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+    from reportlab.lib.enums import TA_LEFT
     PDF_WRITE_AVAILABLE = True
 except ImportError:
     PDF_WRITE_AVAILABLE = False
@@ -32,10 +30,10 @@ except ImportError:
 def read_pdf(file_path: str) -> Optional[str]:
     """
     Extract text from a PDF file
-    
+
     Args:
         file_path: Path to the PDF file
-        
+
     Returns:
         Extracted text or None if failed
     """
@@ -66,12 +64,12 @@ def read_pdf(file_path: str) -> Optional[str]:
 def write_pdf(content: str, output_path: str, title: str = "Polly Output") -> bool:
     """
     Write text content to a PDF file
-    
+
     Args:
         content: Text content to write
         output_path: Path for output PDF file
         title: Document title
-        
+
     Returns:
         True if successful, False otherwise
     """

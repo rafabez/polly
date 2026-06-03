@@ -5,7 +5,6 @@ Custom help formatter using Rich for beautiful output
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.text import Text
 from rich import box
 from .i18n import get_text
 
@@ -139,9 +138,9 @@ def print_help():
 
     # Profile examples
     console.print("  [dim cyan]Configuration Profiles:[/dim cyan]")
-    console.print(f"    [green]polly --save-profile coding[/green]")
-    console.print(f"    [green]polly --load-profile coding[/green]")
-    console.print(f"    [green]polly --list-profiles[/green]")
+    console.print("    [green]polly --save-profile coding[/green]")
+    console.print("    [green]polly --load-profile coding[/green]")
+    console.print("    [green]polly --list-profiles[/green]")
     console.print()
 
     # Info commands with short flags
@@ -152,7 +151,7 @@ def print_help():
 
     # Conversation memory
     console.print("  [dim cyan]Conversation Memory:[/dim cyan]")
-    console.print(f"    [green]polly \"write a fibonacci function\"[/green]")
+    console.print("    [green]polly \"write a fibonacci function\"[/green]")
     console.print(f"    [green]polly \"add memoization to it\"[/green]  [dim]({get_text('example.memory_followup')})[/dim]")
     console.print(f"    [green]polly --context[/green]  [dim]({get_text('example.memory_context')})[/dim]")
     console.print(f"    [green]polly --forget[/green]  [dim]({get_text('example.memory_forget')})[/dim]")

@@ -2,7 +2,6 @@
 Configuration management for Polly
 """
 
-import os
 import time
 import json as _json
 import locale
@@ -111,6 +110,10 @@ DEFAULT_CONFIG = {
     "memory_max_turns": 6,          # keep at most N user+assistant exchanges
     "memory_max_chars": 6000,       # global ceiling on context size
     "memory_max_response_chars": 1000,  # clip long replies (e.g. pasted code)
+    "memory_max_tokens": 1500,  # rough token budget for memory (≈4 chars/token)
+    # Retry config for transient upstream errors (429/502/503/timeout)
+    "retry_max_attempts": 3,
+    "retry_base_delay": 1.0,
 }
 
 # Backend URL (hardcoded - not user-configurable)
@@ -274,7 +277,7 @@ class Config:
         self.config_file = self.config_dir / "config.yaml"
         self.is_first_run = not self.config_file.exists()
         self.config = self._load_config()
-    
+
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from file or create default"""
         if self.config_file.exists():
@@ -290,7 +293,7 @@ class Config:
                 print(get_text("config.load_error", lang="en", e=str(e)))
                 return DEFAULT_CONFIG.copy()
         return DEFAULT_CONFIG.copy()
-    
+
     def save_config(self) -> bool:
         """Save current configuration to file"""
         try:
@@ -302,11 +305,11 @@ class Config:
             # Config is loaded, safe to auto-detect language
             print(get_text("config.save_error", e=str(e)))
             return False
-    
+
     def get(self, key: str, default=None):
         """Get configuration value"""
         return self.config.get(key, default)
-    
+
     def set(self, key: str, value: Any):
         """Set configuration value"""
         self.config[key] = value

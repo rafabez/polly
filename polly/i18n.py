@@ -3,7 +3,6 @@ Internationalization (i18n) module for Polly
 Supports English and Portuguese
 """
 
-from typing import Dict
 
 # Translation dictionaries
 TRANSLATIONS = {

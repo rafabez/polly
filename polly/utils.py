@@ -3,7 +3,6 @@ Utility functions for Polly
 """
 
 import sys
-import platform
 from typing import Optional
 from rich.console import Console
 from rich.markdown import Markdown
@@ -102,18 +101,18 @@ def read_stdin() -> Optional[str]:
 def read_file(filepath: str) -> str:
     """
     Read file contents (supports PDF files)
-    
+
     Args:
         filepath: Path to the file
-    
+
     Returns:
         File contents as string
-    
+
     Raises:
         Exception if file cannot be read
     """
     from .pdf_handler import is_pdf_file, read_pdf
-    
+
     # Check if it's a PDF file
     if is_pdf_file(filepath):
         content = read_pdf(filepath)
@@ -158,7 +157,7 @@ def stream_response(generator, format_markdown: bool = True):
 def show_spinner(message: str = "Thinking..."):
     """
     Show a spinner with message
-    
+
     Returns:
         Live context manager for spinner
     """
@@ -166,54 +165,92 @@ def show_spinner(message: str = "Thinking..."):
     return Live(spinner, console=console, transient=True)
 
 
-def truncate_context(messages: list, max_chars: int = 5000) -> list:
+def estimate_tokens(text: str) -> int:
+    """Rough token estimate: ~4 chars per token (no external deps)."""
+    return max(1, len(text) // 4)
+
+
+def truncate_context(
+    messages: list,
+    max_chars: int = None,
+    max_tokens: int = None,
+) -> list:
     """
-    Truncate conversation context to fit within limits
-    Keeps system message and most recent messages
-    
+    Truncate conversation context to fit within limits.
+    Keeps the leading system message and the most recent messages that fit.
+    At least one of max_chars or max_tokens must be provided.
+    When both are given, whichever is exhausted first wins.
+    A single message that exceeds the budget is kept anyway (never drop last).
+
     Args:
-        messages: List of message dicts
-        max_chars: Maximum total characters
-    
+        messages: List of message dicts with 'role' and 'content'.
+        max_chars: Maximum total characters across all messages.
+        max_tokens: Maximum estimated tokens across all messages.
+
     Returns:
-        Truncated message list
+        Truncated message list.
     """
     if not messages:
         return messages
-    
-    # Calculate current size
-    total_chars = sum(len(msg.get("content", "")) for msg in messages)
-    
-    if total_chars <= max_chars:
+
+    if max_chars is None and max_tokens is None:
+        max_chars = 5000  # legacy default
+
+    def _size(msg: dict) -> tuple[int, int]:
+        content = msg.get("content", "")
+        return len(content), estimate_tokens(content)
+
+    total_chars, total_tokens = 0, 0
+    for m in messages:
+        c, t = _size(m)
+        total_chars += c
+        total_tokens += t
+
+    chars_ok = max_chars is None or total_chars <= max_chars
+    tokens_ok = max_tokens is None or total_tokens <= max_tokens
+    if chars_ok and tokens_ok:
         return messages
-    
-    # Keep system message if present
+
+    # Split system message from the rest
     system_msg = None
-    user_messages = []
-    
+    rest = []
     for msg in messages:
-        if msg.get("role") == "system":
+        if msg.get("role") == "system" and system_msg is None:
             system_msg = msg
         else:
-            user_messages.append(msg)
-    
-    # Keep most recent messages
-    truncated = []
+            rest.append(msg)
+
+    budget_chars = max_chars
+    budget_tokens = max_tokens
     if system_msg:
-        truncated.append(system_msg)
-        max_chars -= len(system_msg.get("content", ""))
-    
-    # Add messages from most recent backwards
-    current_chars = 0
-    for msg in reversed(user_messages):
-        msg_chars = len(msg.get("content", ""))
-        if current_chars + msg_chars <= max_chars:
-            truncated.insert(1 if system_msg else 0, msg)
-            current_chars += msg_chars
+        sc, st = _size(system_msg)
+        if budget_chars is not None:
+            budget_chars -= sc
+        if budget_tokens is not None:
+            budget_tokens -= st
+
+    kept = []
+    used_chars, used_tokens = 0, 0
+    for msg in reversed(rest):
+        mc, mt = _size(msg)
+        c_fits = budget_chars is None or used_chars + mc <= budget_chars
+        t_fits = budget_tokens is None or used_tokens + mt <= budget_tokens
+        if c_fits and t_fits:
+            kept.insert(0, msg)
+            used_chars += mc
+            used_tokens += mt
+        elif not kept:
+            # Always keep the most recent message even if it exceeds budget
+            kept.insert(0, msg)
+            break
         else:
             break
-    
-    return truncated
+
+    result = []
+    if system_msg:
+        result.append(system_msg)
+    result.extend(kept)
+    return result
 
 
 def interactive_os_selection(config) -> Optional[str]:
@@ -226,7 +263,7 @@ def interactive_os_selection(config) -> Optional[str]:
     Returns:
         Selected OS value or None if cancelled
     """
-    from .config import detect_os, normalize_os
+    from .config import detect_os
 
     current_os = config.get("os", "auto")
     detected_os = detect_os()
@@ -508,7 +545,7 @@ def interactive_model_selection(config) -> Optional[str]:
     Returns:
         Selected model name or None if cancelled
     """
-    from .config import AVAILABLE_MODELS, fetch_text_models
+    from .config import fetch_text_models
 
     current_model = config.get("default_model")
     models = fetch_text_models()

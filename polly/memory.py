@@ -135,6 +135,7 @@ def save_turn(user_msg: str, assistant_msg: str) -> None:
     config = get_config()
     max_turns = int(config.get("memory_max_turns", 6))
     max_chars = int(config.get("memory_max_chars", 6000))
+    max_tokens = int(config.get("memory_max_tokens", 1500))
 
     messages = load_context()
     messages.append({"role": "user", "content": user_msg.strip()})
@@ -144,9 +145,8 @@ def save_turn(user_msg: str, assistant_msg: str) -> None:
     if len(messages) > max_turns * 2:
         messages = messages[-max_turns * 2:]
 
-    # Global char ceiling (truncate_context keeps a leading system msg if present;
-    # we have none here, so it simply keeps the most recent messages that fit).
-    messages = truncate_context(messages, max_chars=max_chars)
+    # Cap by chars AND tokens — whichever is exhausted first
+    messages = truncate_context(messages, max_chars=max_chars, max_tokens=max_tokens)
 
     path = _session_path()
     try:

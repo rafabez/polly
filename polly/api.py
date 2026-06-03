@@ -2,12 +2,17 @@
 API client for Pollinations.ai
 """
 
+import time
+import random
 import requests
 import json
 from typing import Optional, List, Dict, Generator
 from urllib.parse import quote
-from .config import get_config, API_BASE_URL, API_TIMEOUT, NEW_API_BASE_URL, AVAILABLE_MODELS, BACKEND_URL, GEN_API_BASE_URL, fetch_text_models
+from .config import get_config, API_BASE_URL, API_TIMEOUT, NEW_API_BASE_URL, BACKEND_URL, fetch_text_models
 from .i18n import get_text
+
+# HTTP status codes that warrant a retry (transient errors only)
+_RETRY_STATUSES = {429, 502, 503}
 
 
 class PollinationsAPI:
@@ -22,7 +27,7 @@ class PollinationsAPI:
         self.new_api_url = NEW_API_BASE_URL  # New direct API
         self.timeout = API_TIMEOUT
         self.referrer = self.config.get("referrer", "interzonesec.com")
-    
+
     def _get_headers(self) -> Dict[str, str]:
         """Get HTTP headers with referrer"""
         return {
@@ -30,7 +35,7 @@ class PollinationsAPI:
             "User-Agent": "Polly/0.1.0",
             "Content-Type": "application/json"
         }
-    
+
     def simple_query(
         self,
         prompt: str,
@@ -40,34 +45,34 @@ class PollinationsAPI:
     ) -> str:
         """
         Simple GET request for quick queries
-        
+
         Args:
             prompt: The user's question/prompt
             model: AI model to use (default from config)
             temperature: Creativity level 0.0-3.0 (default from config)
             stream: Enable streaming response
-        
+
         Returns:
             The AI's response as a string
         """
         model = model or self.config.get("default_model")
         temperature = temperature if temperature is not None else self.config.get("temperature")
-        
+
         # Build URL with encoded prompt
         url = f"{self.base_url}/{quote(prompt)}"
-        
+
         # Build query parameters
         params = {
             "model": model,
             "referer": self.referrer
         }
-        
+
         if temperature is not None:
             params["temperature"] = temperature
-        
+
         if stream:
             params["stream"] = "true"
-        
+
         try:
             response = requests.get(
                 url,
@@ -77,15 +82,59 @@ class PollinationsAPI:
                 stream=stream
             )
             response.raise_for_status()
-            
+
             if stream:
                 return response.iter_content(chunk_size=1024, decode_unicode=True)
             else:
                 return response.text
-                
+
         except requests.exceptions.RequestException as e:
             raise Exception(f"API request failed: {str(e)}")
-    
+
+    def _post_with_retry(self, url: str, payload: dict, headers: dict) -> requests.Response:
+        """
+        POST with exponential backoff on transient errors (429/502/503/conn/timeout).
+        Deterministic errors (400/401/402/404/500) are NOT retried.
+        """
+        config = get_config()
+        max_attempts = int(config.get("retry_max_attempts", 3))
+        base_delay = float(config.get("retry_base_delay", 1.0))
+
+        last_exc = None
+        last_resp = None
+
+        for attempt in range(1, max_attempts + 1):
+            try:
+                resp = requests.post(url, json=payload, headers=headers, timeout=self.timeout)
+                if resp.status_code not in _RETRY_STATUSES:
+                    return resp  # success or deterministic error — return immediately
+
+                # Transient HTTP error
+                last_resp = resp
+                if attempt == max_attempts:
+                    break
+
+                # Honour Retry-After if present (cap at 30s)
+                retry_after = resp.headers.get("Retry-After")
+                if retry_after:
+                    delay = min(float(retry_after), 30.0)
+                else:
+                    delay = base_delay * (2 ** (attempt - 1))
+                    delay *= 1 + random.uniform(-0.25, 0.25)  # ±25% jitter
+
+                time.sleep(delay)
+
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+                last_exc = e
+                if attempt == max_attempts:
+                    break
+                delay = base_delay * (2 ** (attempt - 1)) * (1 + random.uniform(-0.25, 0.25))
+                time.sleep(delay)
+
+        if last_resp is not None:
+            return last_resp
+        raise last_exc
+
     def chat_completion(
         self,
         messages: List[Dict[str, str]],
@@ -134,13 +183,17 @@ class PollinationsAPI:
             api_url = f"{self.base_url}/openai"
 
         try:
-            response = requests.post(
-                api_url,
-                json=payload,
-                headers=self._get_headers(),
-                timeout=None if stream else self.timeout,
-                stream=stream
-            )
+            if stream:
+                # Streaming: use plain requests (no retry mid-stream)
+                response = requests.post(
+                    api_url,
+                    json=payload,
+                    headers=self._get_headers(),
+                    timeout=None,
+                    stream=True,
+                )
+            else:
+                response = self._post_with_retry(api_url, payload, self._get_headers())
             response.raise_for_status()
 
             if stream:
@@ -202,13 +255,13 @@ class PollinationsAPI:
                 f"❌ {get_text('error.request', error_msg=error_msg)}\n"
                 f"💡 {get_text('error.request_tip')}"
             )
-        except (KeyError, json.JSONDecodeError) as e:
+        except (KeyError, json.JSONDecodeError):
             raise Exception(
                 f"⚠️  {get_text('error.invalid_response')}\n"
                 f"💡 {get_text('error.model_unavailable', model=model)}\n"
                 f"   {get_text('error.model_suggestion')}"
             )
-    
+
     def _handle_streaming_response(self, response) -> Generator[str, None, None]:
         """Handle streaming response from API"""
         for line in response.iter_lines(decode_unicode=True):
@@ -225,7 +278,7 @@ class PollinationsAPI:
                             yield content
                 except json.JSONDecodeError:
                     continue
-    
+
     def get_available_models(self, use_cache: bool = True) -> List[Dict[str, any]]:
         """
         Get text models from gen.pollinations.ai (with 24h file cache).

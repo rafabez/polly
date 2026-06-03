@@ -5,16 +5,15 @@ Main entry point for Polly
 import sys
 import json
 import random
-from pathlib import Path
 from .cli import create_parser, validate_args, get_mode_from_args
 from .help_formatter import print_help
 from .api import PollinationsAPI
-from .config import get_config, AVAILABLE_MODELS, fetch_text_models
+from .config import get_config, fetch_text_models
 from .prompts import get_prompt, get_available_modes
 from . import memory
 from .utils import (
     print_response, print_error, print_info, print_success, print_warning,
-    print_code, read_stdin, read_file, stream_response,
+    print_code, read_stdin, read_file,
     show_spinner, truncate_context, interactive_model_selection,
     interactive_language_selection, interactive_temperature_selection,
     interactive_os_selection, run_first_time_setup, interactive_config_editor
@@ -365,7 +364,7 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
             system_prompt, user_prompt = get_prompt(mode, content, language=language, os_type=os_type)
     else:
         system_prompt, user_prompt = get_prompt(mode, content, language=language, os_type=os_type)
-    
+
     # Conversation memory: carry context from previous invocations (all modes
     # except motivational, and unless --no-memory was passed for this query).
     use_memory = (
@@ -385,8 +384,12 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
     messages += history
     messages.append({"role": "user", "content": user_prompt})
 
+    # Disable streaming when stdout is not a TTY (e.g. polly "..." | cat).
+    # Streaming to a pipe hangs because nothing flushes the buffer on Windows.
+    effective_stream = args.stream and sys.stdout.isatty()
+
     try:
-        if args.stream:
+        if effective_stream:
             response = api.chat_completion(
                 messages=messages,
                 model=model,
@@ -400,7 +403,10 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
                 result += chunk
             print()
         else:
-            with show_spinner("Thinking..."):
+            spinner_ctx = show_spinner("Thinking...") if sys.stdout.isatty() else None
+            if spinner_ctx:
+                spinner_ctx.__enter__()
+            try:
                 result = api.chat_completion(
                     messages=messages,
                     model=model,
@@ -408,7 +414,10 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
                     seed=seed,
                     stream=False
                 )
-            
+            finally:
+                if spinner_ctx:
+                    spinner_ctx.__exit__(None, None, None)
+
             # Special formatting for command mode
             if mode == "command":
                 print_code(result.strip(), language="bash")
@@ -437,7 +446,7 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
                 pass  # Success message printed by write_pdf
             else:
                 print_error(get_text("msg.failed_pdf"))
-        
+
         # JSON output
         if args.json:
             output = {
@@ -447,7 +456,7 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
                 "response": result
             }
             print(json.dumps(output, indent=2, ensure_ascii=False))
-        
+
     except Exception as e:
         print_error(str(e))
         sys.exit(1)
@@ -502,22 +511,22 @@ def main():
     # Initialize API (with direct API flag if specified)
     use_direct_api = getattr(args, 'direct_api', False)
     api = PollinationsAPI(use_direct_api=use_direct_api)
-    
+
     # Handle interactive mode
     if args.interactive:
         handle_interactive_mode(api, args)
         return
-    
+
     # Determine mode
     mode = get_mode_from_args(args)
-    
+
     # Get content from various sources
     content = None
-    
+
     # Motivational mode doesn't need content
     if args.motivational:
         content = ""  # Empty content, prompt is self-contained
-    
+
     # From file (explain, debug, or refactor mode)
     elif args.explain:
         try:
@@ -525,23 +534,23 @@ def main():
         except Exception as e:
             print_error(str(e))
             sys.exit(1)
-    
+
     # Debug mode with file
-    elif args.debug and args.debug != True:
+    elif args.debug and not args.debug:
         try:
             content = read_file(args.debug)
         except Exception as e:
             print_error(str(e))
             sys.exit(1)
-    
+
     # Refactor mode with file
-    elif args.refactor and args.refactor != True:
+    elif args.refactor and not args.refactor:
         try:
             content = read_file(args.refactor)
         except Exception as e:
             print_error(str(e))
             sys.exit(1)
-    
+
     # Translate file mode
     elif args.translate_file:
         try:
@@ -549,20 +558,20 @@ def main():
         except Exception as e:
             print_error(str(e))
             sys.exit(1)
-    
+
     # From stdin (piped input)
     elif not sys.stdin.isatty():
         content = read_stdin()
-    
+
     # From prompt argument
     elif args.prompt:
         content = " ".join(args.prompt)
-    
+
     # Check if content is required (motivational mode doesn't need it)
     if not content and not args.motivational:
         print_error(get_text("msg.no_input"))
         sys.exit(1)
-    
+
     # Handle the query
     handle_standard_query(api, args, content, mode)
 
