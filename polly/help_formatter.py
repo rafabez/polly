@@ -64,6 +64,9 @@ def print_help():
     params_table.add_row("-s, --stream", get_text("param.stream"))
     params_table.add_row("-l, --prompt-language", get_text("param.language"))
     params_table.add_row("--direct-api", get_text("param.direct_api"))
+    params_table.add_row("--provider TYPE", get_text("param.provider"))
+    params_table.add_row("--base-url URL", get_text("param.base_url"))
+    params_table.add_row("--api-key KEY", get_text("param.api_key"))
     params_table.add_row("--no-memory", get_text("param.no_memory"))
 
     console.print(params_table)

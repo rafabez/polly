@@ -26,6 +26,30 @@ def handle_config_commands(args):
     config = get_config()
 
     if args.list_models:
+        # Apply provider overrides if passed alongside -lm
+        if getattr(args, "provider", None):
+            config.set("provider_type", args.provider)
+        if getattr(args, "base_url", None):
+            config.set("provider_base_url", args.base_url)
+
+        provider_type = config.get("provider_type", "pollinations")
+        use_direct_api = getattr(args, 'direct_api', False)
+        api_for_list = PollinationsAPI(use_direct_api=use_direct_api)
+
+        if api_for_list.use_custom_provider:
+            from .config import get_provider_base_url
+            base = get_provider_base_url(config)
+            print_info(f"Models from {provider_type} ({base}):\n")
+            models = api_for_list.get_available_models()
+            if not models:
+                print_info(get_text("msg.provider_no_models", provider=provider_type))
+                return True
+            for m in models:
+                name = m.get("name", "?")
+                print(f"  • {name}")
+            print(f"\n  {len(models)} models available. Use -m <name> to select.")
+            return True
+
         print_info(f"{get_text('msg.available_models')}\n")
 
         models = fetch_text_models()
@@ -703,6 +727,14 @@ def main():
     # Handle config commands
     if handle_config_commands(args):
         return
+
+    # Apply per-invocation provider overrides before creating the API client
+    if getattr(args, "provider", None):
+        config.set("provider_type", args.provider)
+    if getattr(args, "base_url", None):
+        config.set("provider_base_url", args.base_url)
+    if getattr(args, "api_key", None):
+        config.set("provider_api_key", args.api_key)
 
     # Initialize API (with direct API flag if specified)
     use_direct_api = getattr(args, 'direct_api', False)

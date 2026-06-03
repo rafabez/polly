@@ -8,7 +8,7 @@ import requests
 import json
 from typing import Optional, List, Dict, Generator
 from urllib.parse import quote
-from .config import get_config, API_BASE_URL, API_TIMEOUT, NEW_API_BASE_URL, BACKEND_URL, fetch_text_models
+from .config import get_config, API_BASE_URL, API_TIMEOUT, NEW_API_BASE_URL, BACKEND_URL, fetch_text_models, get_provider_base_url
 from .i18n import get_text
 
 # HTTP status codes that warrant a retry (transient errors only)
@@ -21,20 +21,65 @@ class PollinationsAPI:
     def __init__(self, use_direct_api: bool = False):
         self.config = get_config()
         self.use_direct_api = use_direct_api
-        self.use_backend = self.config.get("use_backend", True) and not use_direct_api
-        self.backend_url = BACKEND_URL  # Hardcoded backend URL
-        self.base_url = API_BASE_URL  # Old API (fallback)
-        self.new_api_url = NEW_API_BASE_URL  # New direct API
         self.timeout = API_TIMEOUT
         self.referrer = self.config.get("referrer", "interzonesec.com")
 
+        # Provider routing
+        self.provider_type = self.config.get("provider_type", "pollinations")
+        self.use_custom_provider = (
+            self.provider_type != "pollinations"
+            and bool(get_provider_base_url(self.config))
+        )
+
+        # Pollinations-specific URLs (used when provider_type == "pollinations")
+        self.use_backend = (
+            self.config.get("use_backend", True)
+            and not use_direct_api
+            and not self.use_custom_provider
+        )
+        self.backend_url = BACKEND_URL
+        self.base_url = API_BASE_URL
+        self.new_api_url = NEW_API_BASE_URL
+
     def _get_headers(self) -> Dict[str, str]:
-        """Get HTTP headers with referrer"""
+        """Get HTTP headers — adds Bearer auth for custom providers."""
+        if self.use_custom_provider:
+            api_key = self.config.get("provider_api_key", "").strip()
+            h = {"Content-Type": "application/json", "User-Agent": "Polly/0.1.0"}
+            if api_key:
+                h["Authorization"] = f"Bearer {api_key}"
+            return h
         return {
             "Referer": self.referrer,
             "User-Agent": "Polly/0.1.0",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
+
+    def _custom_provider_url(self) -> str:
+        """Return the /chat/completions URL for the custom provider."""
+        base = get_provider_base_url(self.config)
+        return f"{base}/chat/completions"
+
+    def list_local_models(self) -> List[Dict]:
+        """
+        Fetch the model list from the custom provider's /models endpoint.
+        Returns [] on failure. Useful for Ollama / LM Studio.
+        """
+        base = get_provider_base_url(self.config)
+        if not base:
+            return []
+        try:
+            resp = requests.get(
+                f"{base}/models",
+                headers=self._get_headers(),
+                timeout=5,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            models = data.get("data", data) if isinstance(data, dict) else data
+            return [{"name": m.get("id") or m.get("name", ""), "description": ""} for m in models]
+        except Exception:
+            return []
 
     def simple_query(
         self,
@@ -175,11 +220,14 @@ class PollinationsAPI:
             payload["seed"] = seed
 
         # Determine which API to use
-        if self.use_backend:
-            # Use proxy backend (default)
+        if self.use_custom_provider:
+            # Generic OpenAI-compatible endpoint (Ollama, OpenAI, LM Studio, etc.)
+            api_url = self._custom_provider_url()
+        elif self.use_backend:
+            # Polly proxy backend (default)
             api_url = f"{self.backend_url}/api/chat/completions"
         else:
-            # Use old direct API as fallback
+            # Legacy direct Pollinations API
             api_url = f"{self.base_url}/openai"
 
         try:
@@ -281,9 +329,14 @@ class PollinationsAPI:
 
     def get_available_models(self, use_cache: bool = True) -> List[Dict[str, any]]:
         """
-        Get text models from gen.pollinations.ai (with 24h file cache).
-        Returns full model metadata: name, description, aliases, paid_only, reasoning, etc.
+        Return available models.
+        - Custom provider: fetch from the provider's /models endpoint.
+        - Pollinations: fetch from gen.pollinations.ai with health filter + cache.
         """
+        if self.use_custom_provider:
+            local = self.list_local_models()
+            if local:
+                return local
         from pathlib import Path
         config_dir = Path.home() / ".config" / "polly"
         return fetch_text_models(config_dir)

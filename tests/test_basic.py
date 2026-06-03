@@ -53,6 +53,81 @@ def test_translate_prompt():
     assert "Hello" in user
 
 
+class TestProviderRouting:
+    """WU-14: Generalized OpenAI-compatible client."""
+
+    def test_pollinations_default_uses_backend(self):
+        from polly.api import PollinationsAPI
+        api = PollinationsAPI()
+        assert not api.use_custom_provider
+        assert api.use_backend
+
+    def test_ollama_provider_detected(self, monkeypatch):
+        from polly.config import get_config
+        cfg = get_config()
+        cfg.set("provider_type", "ollama")
+        cfg.set("provider_base_url", "")
+        cfg.set("provider_api_key", "")
+        try:
+            from polly.api import PollinationsAPI
+            api = PollinationsAPI()
+            assert api.use_custom_provider
+            assert api._custom_provider_url() == "http://localhost:11434/v1/chat/completions"
+        finally:
+            cfg.set("provider_type", "pollinations")
+            cfg.set("provider_base_url", "")
+
+    def test_custom_base_url_overrides(self, monkeypatch):
+        from polly.config import get_config
+        cfg = get_config()
+        cfg.set("provider_type", "custom")
+        cfg.set("provider_base_url", "http://myserver:8080/v1")
+        try:
+            from polly.api import PollinationsAPI
+            api = PollinationsAPI()
+            assert api.use_custom_provider
+            assert api._custom_provider_url() == "http://myserver:8080/v1/chat/completions"
+        finally:
+            cfg.set("provider_type", "pollinations")
+            cfg.set("provider_base_url", "")
+
+    def test_custom_provider_headers_include_bearer(self, monkeypatch):
+        from polly.config import get_config
+        cfg = get_config()
+        cfg.set("provider_type", "openai")
+        cfg.set("provider_base_url", "https://api.openai.com/v1")
+        cfg.set("provider_api_key", "sk-test123")
+        try:
+            from polly.api import PollinationsAPI
+            api = PollinationsAPI()
+            headers = api._get_headers()
+            assert headers.get("Authorization") == "Bearer sk-test123"
+        finally:
+            cfg.set("provider_type", "pollinations")
+            cfg.set("provider_base_url", "")
+            cfg.set("provider_api_key", "")
+
+    def test_no_key_no_auth_header(self):
+        from polly.config import get_config
+        cfg = get_config()
+        cfg.set("provider_type", "ollama")
+        cfg.set("provider_base_url", "http://localhost:11434/v1")
+        cfg.set("provider_api_key", "")
+        try:
+            from polly.api import PollinationsAPI
+            api = PollinationsAPI()
+            headers = api._get_headers()
+            assert "Authorization" not in headers
+        finally:
+            cfg.set("provider_type", "pollinations")
+            cfg.set("provider_base_url", "")
+
+    def test_provider_base_url_preset(self):
+        from polly.config import PROVIDER_BASE_URLS
+        assert PROVIDER_BASE_URLS["ollama"] == "http://localhost:11434/v1"
+        assert PROVIDER_BASE_URLS["openai"].startswith("https://api.openai.com")
+
+
 class TestSkills:
     """WU-13: OS skills registry and starter skills."""
 

@@ -120,6 +120,11 @@ DEFAULT_CONFIG = {
     "execute_enabled": True,   # master switch for -X / --execute
     "execute_autoconfirm_safe": False,  # auto-confirm SAFE commands without prompting
     "edit_max_kb": 256,  # max file size for --edit (KB)
+    # Custom OpenAI-compatible provider (e.g. Ollama, OpenAI, any local server)
+    # Leave provider_type as "pollinations" (default) to keep current behaviour.
+    "provider_type": "pollinations",  # "pollinations" | "openai" | "ollama" | "custom"
+    "provider_base_url": "",          # e.g. http://localhost:11434/v1
+    "provider_api_key": "",           # Bearer token (empty = no auth)
     # System context (injects OS/shell/pkg info into prompts)
     "system_context_enabled": True,
     "system_context_ttl_hours": 24,
@@ -316,6 +321,23 @@ def fetch_text_models(config_dir: Path = None) -> list:
         return filtered if filtered else all_models
 
     return all_models
+
+# Well-known base URLs for provider types
+PROVIDER_BASE_URLS = {
+    "ollama": "http://localhost:11434/v1",
+    "openai": "https://api.openai.com/v1",
+    "lmstudio": "http://localhost:1234/v1",
+}
+
+
+def get_provider_base_url(config) -> str:
+    """Return the effective base URL for the configured provider."""
+    ptype = config.get("provider_type", "pollinations")
+    custom = config.get("provider_base_url", "").strip()
+    if custom:
+        return custom.rstrip("/")
+    return PROVIDER_BASE_URLS.get(ptype, "").rstrip("/")
+
 
 # Temperature Presets
 TEMPERATURE_PRESETS = {

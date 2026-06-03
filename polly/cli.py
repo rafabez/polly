@@ -163,6 +163,22 @@ def create_parser() -> argparse.ArgumentParser:
         help="Don't use or update conversation memory for this query"
     )
     params_group.add_argument(
+        "--provider",
+        metavar="TYPE",
+        choices=["pollinations", "openai", "ollama", "lmstudio", "custom"],
+        help="Provider type: pollinations (default), ollama, openai, lmstudio, custom"
+    )
+    params_group.add_argument(
+        "--base-url",
+        metavar="URL",
+        help="Custom OpenAI-compatible base URL (e.g. http://localhost:11434/v1)"
+    )
+    params_group.add_argument(
+        "--api-key",
+        metavar="KEY",
+        help="API key / Bearer token for the provider (overrides config)"
+    )
+    params_group.add_argument(
         "--cache",
         action="store_true",
         help="Enable response cache for this query (ignores response_cache_enabled)"
