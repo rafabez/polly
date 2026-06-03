@@ -148,6 +148,11 @@ def create_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Use direct Pollinations API (bypass proxy backend)"
     )
+    params_group.add_argument(
+        "--no-memory",
+        action="store_true",
+        help="Don't use or update conversation memory for this query"
+    )
     
     # Output options
     output_group = parser.add_argument_group("output")
@@ -243,6 +248,16 @@ def create_parser() -> argparse.ArgumentParser:
     # Info
     info_group = parser.add_argument_group("information")
     info_group.add_argument(
+        "--context",
+        action="store_true",
+        help="Show the active conversation memory for this terminal"
+    )
+    info_group.add_argument(
+        "--forget",
+        action="store_true",
+        help="Clear the conversation memory for this terminal"
+    )
+    info_group.add_argument(
         "-lm", "--list-models",
         action="store_true",
         help="List available AI models"
@@ -332,7 +347,9 @@ def validate_args(args) -> Optional[str]:
         args.save_profile or
         args.load_profile or
         args.list_profiles or
-        args.delete_profile
+        args.delete_profile or
+        args.context or
+        args.forget
     )
     
     if needs_prompt and not args.prompt and not args.explain:

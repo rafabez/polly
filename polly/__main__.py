@@ -11,6 +11,7 @@ from .help_formatter import print_help
 from .api import PollinationsAPI
 from .config import get_config, AVAILABLE_MODELS, fetch_text_models
 from .prompts import get_prompt, get_available_modes
+from . import memory
 from .utils import (
     print_response, print_error, print_info, print_success, print_warning,
     print_code, read_stdin, read_file, stream_response,
@@ -49,6 +50,24 @@ def handle_config_commands(args):
         print_info(f"{get_text('msg.available_modes')}\n")
         for mode, description in get_available_modes().items():
             print(f"  • {mode:18} - {description}")
+        return True
+
+    if args.forget:
+        if memory.clear_session():
+            print_success(get_text("msg.memory_cleared"))
+        else:
+            print_info(get_text("msg.memory_empty"))
+        return True
+
+    if args.context:
+        ctx = memory.format_context()
+        if ctx:
+            print_info(get_text("msg.memory_header"))
+            print()
+            print(ctx)
+            print(get_text("msg.memory_log_note", path=memory.history_path_str()))
+        else:
+            print_info(get_text("msg.memory_empty"))
         return True
 
     if args.set_default_model is not None:
@@ -347,12 +366,23 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
     else:
         system_prompt, user_prompt = get_prompt(mode, content, language=language, os_type=os_type)
     
-    # Prepare messages for chat completion
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt}
-    ]
-    
+    # Conversation memory: carry context from previous invocations (all modes
+    # except motivational, and unless --no-memory was passed for this query).
+    use_memory = (
+        config.get("memory_enabled", True)
+        and not getattr(args, "no_memory", False)
+        and mode != "motivational"
+    )
+    history = memory.load_context() if use_memory else []
+
+    # Prepare messages for chat completion: system + prior turns + new user prompt
+    messages = [{"role": "system", "content": system_prompt}]
+    messages += history
+    messages.append({"role": "user", "content": user_prompt})
+
+    if use_memory:
+        messages = truncate_context(messages, max_chars=config.get("memory_max_chars", 6000))
+
     try:
         if args.stream:
             response = api.chat_completion(
@@ -382,7 +412,12 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
                 print_code(result.strip(), language="bash")
             else:
                 print_response(result, format_markdown=not args.no_markdown)
-        
+
+        # Persist this exchange to memory + history log
+        if use_memory and result and result.strip():
+            memory.save_turn(content, result)
+            memory.append_history(model, mode, content, result)
+
         # Save to file if requested
         if args.output:
             try:
@@ -450,7 +485,9 @@ def main():
         args.save_profile or
         args.load_profile or
         args.list_profiles or
-        args.delete_profile
+        args.delete_profile or
+        args.context or
+        args.forget
     )
 
     if config.is_first_run and not is_config_command:

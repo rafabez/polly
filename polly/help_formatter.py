@@ -63,6 +63,7 @@ def print_help():
     params_table.add_row("-s, --stream", get_text("param.stream"))
     params_table.add_row("-l, --prompt-language", get_text("param.language"))
     params_table.add_row("--direct-api", get_text("param.direct_api"))
+    params_table.add_row("--no-memory", get_text("param.no_memory"))
 
     console.print(params_table)
     console.print()
@@ -110,6 +111,8 @@ def print_help():
 
     info_table.add_row("-lm, --list-models", get_text("info.list_models"))
     info_table.add_row("-lmo, --list-modes", get_text("info.list_modes"))
+    info_table.add_row("--context", get_text("info.context"))
+    info_table.add_row("--forget", get_text("info.forget"))
     info_table.add_row("-v, --version", get_text("info.version"))
     info_table.add_row("-h, --help", get_text("info.help"))
 

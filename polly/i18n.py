@@ -37,6 +37,7 @@ TRANSLATIONS = {
         "param.stream": "Enable streaming response",
         "param.language": "Language for prompts (default: pt - Portuguese)",
         "param.direct_api": "Use direct Pollinations API (bypass proxy backend)",
+        "param.no_memory": "Don't use/update conversation memory for this query",
 
         # Output
         "output.file": "Save response to file",
@@ -60,6 +61,8 @@ TRANSLATIONS = {
         # Information
         "info.list_models": "List available AI models",
         "info.list_modes": "List available prompt modes",
+        "info.context": "Show active conversation memory",
+        "info.forget": "Clear conversation memory for this terminal",
         "info.version": "Show version number",
         "info.help": "Show this help message",
 
@@ -101,6 +104,10 @@ TRANSLATIONS = {
         "msg.interactive_help": "Interactive mode - Type 'exit' or 'quit' to end, 'clear' to reset context",
         "msg.goodbye": "Goodbye!",
         "msg.context_cleared": "Context cleared",
+        "msg.memory_cleared": "Conversation memory cleared for this terminal.",
+        "msg.memory_empty": "No conversation memory for this terminal.",
+        "msg.memory_header": "Active conversation memory:",
+        "msg.memory_log_note": "Full conversation log: {path}",
         "msg.you": "You:",
         "msg.polly": "Polly:",
         "msg.response_saved": "Response saved to:",
@@ -225,6 +232,7 @@ TRANSLATIONS = {
         "param.stream": "Habilita resposta em streaming",
         "param.language": "Idioma dos prompts (padrão: pt - Português)",
         "param.direct_api": "Usa API direta Pollinations (sem proxy backend)",
+        "param.no_memory": "Não usa/atualiza a memória de conversa nesta pergunta",
 
         # Output
         "output.file": "Salva resposta em arquivo",
@@ -248,6 +256,8 @@ TRANSLATIONS = {
         # Information
         "info.list_models": "Lista modelos de IA disponíveis",
         "info.list_modes": "Lista modos de prompt disponíveis",
+        "info.context": "Mostra a memória de conversa ativa",
+        "info.forget": "Limpa a memória de conversa deste terminal",
         "info.version": "Mostra número da versão",
         "info.help": "Mostra esta mensagem de ajuda",
 
@@ -289,6 +299,10 @@ TRANSLATIONS = {
         "msg.interactive_help": "Modo interativo - Digite 'exit' ou 'quit' para sair, 'clear' para limpar contexto",
         "msg.goodbye": "Até logo!",
         "msg.context_cleared": "Contexto limpo",
+        "msg.memory_cleared": "Memória de conversa limpa para este terminal.",
+        "msg.memory_empty": "Nenhuma memória de conversa para este terminal.",
+        "msg.memory_header": "Memória de conversa ativa:",
+        "msg.memory_log_note": "Log completo das conversas: {path}",
         "msg.you": "Você:",
         "msg.polly": "Polly:",
         "msg.response_saved": "Resposta salva em:",

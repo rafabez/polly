@@ -105,6 +105,12 @@ DEFAULT_CONFIG = {
     "language": "auto",  # auto (detect from locale), pt, en, pt-br, portuguese, english
     "use_backend": True,  # Use proxy backend by default
     "os": "auto",  # Operating system: auto, linux, darwin, windows
+    # Conversational memory (context carried between separate CLI invocations)
+    "memory_enabled": True,
+    "memory_ttl_minutes": 30,       # session expires after this much inactivity
+    "memory_max_turns": 6,          # keep at most N user+assistant exchanges
+    "memory_max_chars": 6000,       # global ceiling on context size
+    "memory_max_response_chars": 1000,  # clip long replies (e.g. pasted code)
 }
 
 # Backend URL (hardcoded - not user-configurable)
