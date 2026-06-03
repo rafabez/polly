@@ -66,8 +66,8 @@ _DESTRUCTIVE_PATTERNS = [
     # Git destructive
     r"\bgit\b.*(reset\s+--hard|clean\s+-[fdFD])",
     r"\bgit\b.*push\s+--force",
-    # Truncate a file
-    r">\s*\S+",
+    # Truncate a file (but not 2>/dev/null or stderr/stdout redirects)
+    r"(?<!\d)(?<!\w)>\s*(?!/dev/null)(?!\s*&)\S+",
     # kill -9
     r"\bkill\s+-9\b",
     r"\bkillall\b",
