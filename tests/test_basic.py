@@ -53,6 +53,38 @@ def test_translate_prompt():
     assert "Hello" in user
 
 
+def test_system_context_collect_no_crash(monkeypatch):
+    """collect() never raises even when all subprocesses are missing."""
+    import shutil
+    from polly import system_context as sc
+    monkeypatch.setattr(shutil, "which", lambda _: None)
+    ctx = sc.collect()
+    assert "os" in ctx
+    assert "os_name" in ctx
+
+
+def test_system_context_summary_format():
+    """summary() returns a non-empty string under 300 chars."""
+    from polly import system_context as sc
+    ctx = {"os_name": "Ubuntu 24.04", "arch": "x86_64", "shell": "bash",
+           "pkg_manager": "apt", "tools": {"python": "3.12"}}
+    s = sc.summary(ctx)
+    assert "Ubuntu" in s
+    assert "apt" in s
+    assert len(s) <= 300
+
+
+def test_system_context_cache_roundtrip(tmp_path, monkeypatch):
+    """save/load round-trip with fresh TTL returns the saved context."""
+    from polly import system_context as sc
+    monkeypatch.setattr(sc, "_cache_path", lambda: tmp_path / "system.json")
+    ctx = {"os": "linux", "os_name": "TestOS", "collected_at": __import__("time").time()}
+    sc.save(ctx)
+    loaded = sc.load(ttl_hours=24)
+    assert loaded is not None
+    assert loaded["os_name"] == "TestOS"
+
+
 def test_fetch_health_stats_parses_rows(monkeypatch):
     """fetch_health_stats parses a sample Tinybird payload correctly."""
     from polly import config as cfg

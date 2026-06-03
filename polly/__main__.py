@@ -10,7 +10,7 @@ from .help_formatter import print_help
 from .api import PollinationsAPI
 from .config import get_config, fetch_text_models, fetch_health_stats
 from .prompts import get_prompt, get_available_modes
-from . import memory, cache
+from . import memory, cache, system_context
 from .utils import (
     print_response, print_error, print_info, print_success, print_warning,
     print_code, read_stdin, read_file,
@@ -77,6 +77,37 @@ def handle_config_commands(args):
             print(get_text("msg.memory_log_note", path=memory.history_path_str()))
         else:
             print_info(get_text("msg.memory_empty"))
+        return True
+
+    if args.rescan:
+        ctx = system_context.collect()
+        system_context.save(ctx)
+        print_success(get_text("msg.system_rescanned"))
+        print_info(get_text("msg.system_header"))
+        print(system_context.summary(ctx))
+        return True
+
+    if args.show_system:
+        ctx = system_context.get_or_collect(
+            ttl_hours=config.get("system_context_ttl_hours", 24)
+        )
+        if ctx:
+            print_info(get_text("msg.system_header"))
+            print()
+            for k, v in ctx.items():
+                if k == "collected_at":
+                    import datetime
+                    ts = datetime.datetime.fromtimestamp(v).strftime("%Y-%m-%d %H:%M")
+                    print(f"  collected_at : {ts}")
+                elif k == "tools" and isinstance(v, dict):
+                    for tool, ver in v.items():
+                        print(f"  {tool:<15}: {ver}")
+                else:
+                    print(f"  {k:<15}: {v}")
+            print()
+            print(f"  summary: {system_context.summary(ctx)}")
+        else:
+            print_info(get_text("msg.system_none"))
         return True
 
     if args.update:
@@ -426,6 +457,19 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
     else:
         system_prompt, user_prompt = get_prompt(mode, content, language=language, os_type=os_type)
 
+    # System context: prepend machine facts to system prompt for relevant modes.
+    _sys_ctx_modes = {"default", "command", "command_explain", "debug", "refactor"}
+    if config.get("system_context_enabled", True) and mode in _sys_ctx_modes:
+        try:
+            ctx = system_context.get_or_collect(
+                ttl_hours=config.get("system_context_ttl_hours", 24)
+            )
+            ctx_summary = system_context.summary(ctx)
+            if ctx_summary:
+                system_prompt = f"[System: {ctx_summary}]\n\n{system_prompt}"
+        except Exception:
+            pass  # best-effort — never block the main flow
+
     # Conversation memory: carry context from previous invocations (all modes
     # except motivational, and unless --no-memory was passed for this query).
     use_memory = (
@@ -589,7 +633,9 @@ def main():
         args.history or
         args.history_clear or
         args.purge or
-        args.update
+        args.update or
+        getattr(args, "rescan", False) or
+        getattr(args, "show_system", False)
     )
 
     if config.is_first_run and not is_config_command:

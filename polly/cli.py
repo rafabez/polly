@@ -272,6 +272,16 @@ def create_parser() -> argparse.ArgumentParser:
         help="Update Polly to the latest version from GitHub"
     )
     info_group.add_argument(
+        "--rescan",
+        action="store_true",
+        help="Rescan and refresh system context (OS, shell, tools)"
+    )
+    info_group.add_argument(
+        "--show-system",
+        action="store_true",
+        help="Show detected system information"
+    )
+    info_group.add_argument(
         "--history",
         action="store_true",
         help="Print recent conversation history"
@@ -382,7 +392,9 @@ def validate_args(args) -> Optional[str]:
         args.history or
         args.history_clear or
         args.purge or
-        args.update
+        args.update or
+        args.rescan or
+        args.show_system
     )
 
     if needs_prompt and not args.prompt and not args.explain:
