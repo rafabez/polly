@@ -441,9 +441,8 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
         # Get target language from either -t or -tf
         target_lang = args.translate if args.translate else args.translate_file[0]
         system_prompt, user_prompt = get_prompt(mode, content, language=language, target_language=target_lang, os_type=os_type)
-    elif mode == "command":
-        # Command mode - check for number of versions
-        # Support both -cN format and legacy --command-versions
+    elif mode in ("command", "execute"):
+        # Command mode — also used by -X (execute) which implies command generation
         num_versions = 1
         if args.command and args.command > 1:
             num_versions = args.command
@@ -451,9 +450,9 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
             num_versions = args.command_versions
 
         if num_versions > 1:
-            system_prompt, user_prompt = get_prompt(mode, content, language=language, num_versions=num_versions, os_type=os_type)
+            system_prompt, user_prompt = get_prompt("command", content, language=language, num_versions=num_versions, os_type=os_type)
         else:
-            system_prompt, user_prompt = get_prompt(mode, content, language=language, os_type=os_type)
+            system_prompt, user_prompt = get_prompt("command", content, language=language, os_type=os_type)
     else:
         system_prompt, user_prompt = get_prompt(mode, content, language=language, os_type=os_type)
 
@@ -559,8 +558,13 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
             )
             if should_execute:
                 dry = getattr(args, "dry_run", False)
-                # Extract individual commands from result (split on newlines, strip blanks)
-                cmds = [c.strip() for c in result.strip().splitlines() if c.strip() and not c.startswith("#")]
+                # Extract commands: prefer backtick/code-fenced blocks, else non-empty lines
+                import re as _re
+                code_blocks = _re.findall(r"```(?:\w+)?\n?(.*?)```", result, _re.DOTALL)
+                if code_blocks:
+                    cmds = [c.strip() for block in code_blocks for c in block.splitlines() if c.strip() and not c.strip().startswith("#")]
+                else:
+                    cmds = [c.strip() for c in result.strip().splitlines() if c.strip() and not c.strip().startswith(("#", "-", "*", ">", "`"))]
                 if len(cmds) > 1:
                     cmd_to_run = executor.pick_command(cmds)
                 else:
