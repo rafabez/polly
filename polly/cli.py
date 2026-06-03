@@ -114,6 +114,11 @@ def create_parser() -> argparse.ArgumentParser:
         help="Translate file content to specified language"
     )
     mode_group.add_argument(
+        "-A", "--agent",
+        action="store_true",
+        help="Run in agent mode: plan and execute multi-step tasks with tools"
+    )
+    mode_group.add_argument(
         "-X", "--execute",
         action="store_true",
         help="Generate a command and execute it (with safety confirmation)"
@@ -313,6 +318,11 @@ def create_parser() -> argparse.ArgumentParser:
         help="Revert a file to its most recent Polly backup"
     )
     info_group.add_argument(
+        "--enable-agent",
+        action="store_true",
+        help="Enable agent mode and save to config"
+    )
+    info_group.add_argument(
         "--update",
         action="store_true",
         help="Update Polly to the latest version from GitHub"
@@ -442,7 +452,8 @@ def validate_args(args) -> Optional[str]:
         args.rescan or
         args.show_system or
         bool(args.revert) or
-        args.list_skills
+        args.list_skills or
+        getattr(args, "enable_agent", False)
     )
 
     if needs_prompt and not args.prompt and not args.explain:

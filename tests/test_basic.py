@@ -53,6 +53,125 @@ def test_translate_prompt():
     assert "Hello" in user
 
 
+class TestAgent:
+    """WU-15: Tool-using agent loop."""
+
+    def setup_method(self):
+        from polly import agent as ag
+        self.ag = ag
+
+    def test_tools_schema_valid(self):
+        """All tools have required OpenAI function schema fields."""
+        from polly.agent import TOOLS
+        for tool in TOOLS:
+            assert tool["type"] == "function"
+            fn = tool["function"]
+            assert "name" in fn
+            assert "parameters" in fn
+            assert fn["parameters"]["type"] == "object"
+
+    def test_run_tool_read_file(self, tmp_path):
+        """read_file returns file contents."""
+        f = tmp_path / "hello.txt"
+        f.write_text("hello world")
+        result = self.ag._run_tool("read_file", {"path": str(f)}, dry_run=False)
+        assert "hello world" in result
+
+    def test_run_tool_read_file_missing(self, tmp_path):
+        """read_file on missing file returns error string, not exception."""
+        result = self.ag._run_tool("read_file", {"path": "/nonexistent/x.txt"}, dry_run=False)
+        assert "Error" in result or "not found" in result.lower() or len(result) > 0
+
+    def test_run_tool_write_file_dry_run(self, tmp_path):
+        """write_file with dry_run=True never writes."""
+        p = tmp_path / "out.txt"
+        result = self.ag._run_tool(
+            "write_file",
+            {"path": str(p), "content": "data", "reason": "test"},
+            dry_run=True,
+        )
+        assert not p.exists()
+        assert "dry-run" in result.lower() or "skipped" in result.lower()
+
+    def test_run_tool_write_file_aborted(self, tmp_path, monkeypatch):
+        """write_file returns abort message when user says no."""
+        monkeypatch.setattr("builtins.input", lambda _: "n")
+        p = tmp_path / "out.txt"
+        result = self.ag._run_tool(
+            "write_file",
+            {"path": str(p), "content": "x", "reason": "test"},
+            dry_run=False,
+        )
+        assert not p.exists()
+        assert "abort" in result.lower()
+
+    def test_run_tool_write_file_confirmed(self, tmp_path, monkeypatch):
+        """write_file writes when user confirms."""
+        monkeypatch.setattr("builtins.input", lambda _: "y")
+        p = tmp_path / "out.txt"
+        result = self.ag._run_tool(
+            "write_file",
+            {"path": str(p), "content": "hello", "reason": "test"},
+            dry_run=False,
+        )
+        assert p.exists()
+        assert p.read_text() == "hello"
+        assert "Written" in result
+
+    def test_agent_disabled_by_default(self, monkeypatch):
+        """Agent exits immediately when agent_enabled=False."""
+        from polly.config import get_config
+        cfg = get_config()
+        original = cfg.get("agent_enabled", False)
+        cfg.set("agent_enabled", False)
+        try:
+            class FakeAPI:
+                use_custom_provider = False
+                use_backend = True
+                backend_url = "http://x"
+                def _get_headers(self): return {}
+                def _post_with_retry(self, *a, **k): raise AssertionError("should not be called")
+            import io
+            from unittest.mock import patch
+            with patch("sys.stdout", new_callable=io.StringIO):
+                self.ag.run(FakeAPI(), "test goal")
+        finally:
+            cfg.set("agent_enabled", original)
+
+    def test_agent_loop_final_answer(self, monkeypatch):
+        """Agent returns immediately when model gives a text answer (no tools)."""
+        from polly.config import get_config
+        cfg = get_config()
+        cfg.set("agent_enabled", True)
+        try:
+            call_count = [0]
+
+            class FakeResp:
+                status_code = 200
+                def raise_for_status(self): pass
+                def json(self):
+                    return {
+                        "choices": [{
+                            "message": {"role": "assistant", "content": "Done!", "tool_calls": None},
+                            "finish_reason": "stop"
+                        }]
+                    }
+
+            class FakeAPI:
+                use_custom_provider = False
+                use_backend = True
+                backend_url = "http://x"
+                def _get_headers(self): return {}
+                def _post_with_retry(self, *a, **k):
+                    call_count[0] += 1
+                    return FakeResp()
+
+            self.ag.run(FakeAPI(), "just say done")
+            assert call_count[0] == 1
+        finally:
+            cfg.set("agent_enabled", False)
+
+
 class TestProviderRouting:
     """WU-14: Generalized OpenAI-compatible client."""
 

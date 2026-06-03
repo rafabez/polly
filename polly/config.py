@@ -122,6 +122,10 @@ DEFAULT_CONFIG = {
     "edit_max_kb": 256,  # max file size for --edit (KB)
     # Custom OpenAI-compatible provider (e.g. Ollama, OpenAI, any local server)
     # Leave provider_type as "pollinations" (default) to keep current behaviour.
+    # Agent loop (WU-15)
+    "agent_enabled": False,    # opt-in — enable with polly --enable-agent or config
+    "agent_max_steps": 8,      # max tool-call rounds before stopping
+    # Custom OpenAI-compatible provider
     "provider_type": "pollinations",  # "pollinations" | "openai" | "ollama" | "custom"
     "provider_base_url": "",          # e.g. http://localhost:11434/v1
     "provider_api_key": "",           # Bearer token (empty = no auth)
