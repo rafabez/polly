@@ -53,6 +53,30 @@ def test_translate_prompt():
     assert "Hello" in user
 
 
+def test_fetch_health_stats_parses_rows(monkeypatch):
+    """fetch_health_stats parses a sample Tinybird payload correctly."""
+    from polly import config as cfg
+    sample = [
+        {"event_type": "generate.text", "model": "mistral",
+         "total_requests": 100, "status_2xx": 95, "latency_p50_ms": 500},
+        {"event_type": "generate.image", "model": "flux",  # non-text, should be ignored
+         "total_requests": 10, "status_2xx": 8, "latency_p50_ms": 1000},
+        {"event_type": "generate.text", "model": "gemini",
+         "total_requests": 50, "status_2xx": 10, "latency_p50_ms": 900},
+    ]
+    monkeypatch.setattr(cfg, "_fetch_tinybird_rows", lambda: [r for r in sample if r["event_type"] == "generate.text"])
+    # Bypass cache
+    import tempfile
+    import pathlib
+    tmp = pathlib.Path(tempfile.mkdtemp())
+    stats = cfg.fetch_health_stats(config_dir=tmp)
+    assert "mistral" in stats
+    assert stats["mistral"]["success_pct"] == 95
+    assert stats["mistral"]["p50_ms"] == 500
+    assert "gemini" in stats
+    assert stats["gemini"]["success_pct"] == 20
+
+
 def test_cache_put_get_roundtrip(tmp_path, monkeypatch):
     """Cache put then get returns the same response within TTL."""
     from polly import cache

@@ -145,12 +145,8 @@ AVAILABLE_MODELS = {
 }
 
 
-def _fetch_healthy_model_names() -> set:
-    """
-    Query Tinybird (same source as model-monitor.pollinations.ai) for text models
-    with >=50% success rate within HEALTH_WINDOW_MINUTES. Returns a set of model
-    names. Returns empty set on any failure so callers can fall back gracefully.
-    """
+def _fetch_tinybird_rows() -> list:
+    """Fetch raw Tinybird rows for text models. Returns [] on any failure."""
     import requests as _req
     try:
         r = _req.get(
@@ -159,18 +155,55 @@ def _fetch_healthy_model_names() -> set:
             timeout=6,
         )
         r.raise_for_status()
-        rows = r.json().get("data", [])
-        healthy = set()
-        for row in rows:
-            if row.get("event_type") != "generate.text":
-                continue
-            total = row.get("total_requests") or 0
-            ok = row.get("status_2xx") or 0
-            if total > 0 and ok / total >= 0.5:
-                healthy.add(row["model"])
-        return healthy
+        return [row for row in r.json().get("data", []) if row.get("event_type") == "generate.text"]
     except Exception:
-        return set()
+        return []
+
+
+def _fetch_healthy_model_names() -> set:
+    """Return names of text models with >=50% success rate. Empty set on failure."""
+    healthy = set()
+    for row in _fetch_tinybird_rows():
+        total = row.get("total_requests") or 0
+        ok = row.get("status_2xx") or 0
+        if total > 0 and ok / total >= 0.5:
+            healthy.add(row["model"])
+    return healthy
+
+
+def fetch_health_stats(config_dir: Path = None) -> dict:
+    """
+    Return per-model health stats from the cache (or live Tinybird fetch).
+    Result: { model_name: {"success_pct": int, "p50_ms": int} }
+    Returns {} when data is unavailable.
+    """
+    if config_dir is None:
+        config_dir = Path.home() / ".config" / "polly"
+    health_cache = config_dir / "health_cache.json"
+
+    stats = {}
+    # Try reading from cache first
+    if health_cache.exists():
+        try:
+            with open(health_cache, "r") as f:
+                hc = _json.load(f)
+            if time.time() - hc.get("timestamp", 0) < HEALTH_CACHE_TTL:
+                return hc.get("stats", {})
+        except Exception:
+            pass
+
+    # Fetch live
+    for row in _fetch_tinybird_rows():
+        total = row.get("total_requests") or 0
+        ok = row.get("status_2xx") or 0
+        name = row.get("model", "")
+        if not name or total == 0:
+            continue
+        stats[name] = {
+            "success_pct": int(ok / total * 100),
+            "p50_ms": int(row.get("latency_p50_ms") or 0),
+        }
+    return stats
 
 
 def fetch_text_models(config_dir: Path = None) -> list:
@@ -234,12 +267,30 @@ def fetch_text_models(config_dir: Path = None) -> list:
             pass
 
     if healthy_names is None:
-        healthy_names = _fetch_healthy_model_names()
+        rows = _fetch_tinybird_rows()
+        healthy_names = set()
+        stats_to_cache = {}
+        for row in rows:
+            total = row.get("total_requests") or 0
+            ok = row.get("status_2xx") or 0
+            name = row.get("model", "")
+            if not name or total == 0:
+                continue
+            if ok / total >= 0.5:
+                healthy_names.add(name)
+            stats_to_cache[name] = {
+                "success_pct": int(ok / total * 100),
+                "p50_ms": int(row.get("latency_p50_ms") or 0),
+            }
         if healthy_names:
             try:
                 config_dir.mkdir(parents=True, exist_ok=True)
                 with open(health_cache, "w") as f:
-                    _json.dump({"timestamp": time.time(), "healthy": list(healthy_names)}, f)
+                    _json.dump({
+                        "timestamp": time.time(),
+                        "healthy": list(healthy_names),
+                        "stats": stats_to_cache,
+                    }, f)
             except Exception:
                 pass
 

@@ -8,7 +8,7 @@ import random
 from .cli import create_parser, validate_args, get_mode_from_args
 from .help_formatter import print_help
 from .api import PollinationsAPI
-from .config import get_config, fetch_text_models
+from .config import get_config, fetch_text_models, fetch_health_stats
 from .prompts import get_prompt, get_available_modes
 from . import memory, cache
 from .utils import (
@@ -29,6 +29,7 @@ def handle_config_commands(args):
         print_info(f"{get_text('msg.available_models')}\n")
 
         models = fetch_text_models()
+        health = fetch_health_stats()
         default_model = config.get("default_model")
 
         for model in models:
@@ -40,7 +41,16 @@ def handle_config_commands(args):
             if model.get("is_specialized"):
                 flags += " [specialized]"
             is_default = " (default)" if name == default_model else ""
-            print(f"  • {name:<25} {description}{flags}{is_default}")
+
+            # Health badge from Tinybird data
+            badge = ""
+            h = health.get(name)
+            if h:
+                pct = h["success_pct"]
+                p50 = h["p50_ms"]
+                badge = f" {pct}% ~{p50}ms"
+
+            print(f"  • {name:<25} {description}{flags}{badge}{is_default}")
 
         print(f"\n  {len(models)} models available. Use -m <name> to select.")
         return True
