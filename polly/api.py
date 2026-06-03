@@ -157,11 +157,17 @@ class PollinationsAPI:
         except requests.exceptions.HTTPError as e:
             status_code = e.response.status_code if e.response else "unknown"
 
-            if status_code == 503 or status_code == 502:
-                raise Exception(
-                    f"🔴 {get_text('error.service_down')}\n"
-                    f"💡 {get_text('error.service_tip')}"
-                )
+            # Try to extract a specific message from the backend's JSON error body
+            backend_msg = ""
+            if e.response is not None:
+                try:
+                    body = e.response.json()
+                    backend_msg = body.get("error", {}).get("message", "")
+                except Exception:
+                    pass
+
+            if backend_msg:
+                raise Exception(f"❌ {backend_msg}")
             elif status_code == 429:
                 raise Exception(
                     f"⚠️  {get_text('error.rate_limit')}\n"
@@ -172,6 +178,11 @@ class PollinationsAPI:
                     f"❌ {get_text('error.server_error', model=model)}\n"
                     f"💡 {get_text('error.server_tip')}\n"
                     f"   {get_text('error.server_suggestion')}"
+                )
+            elif status_code in (502, 503):
+                raise Exception(
+                    f"🔴 {get_text('error.service_down')}\n"
+                    f"💡 {get_text('error.service_tip')}"
                 )
             else:
                 raise Exception(
