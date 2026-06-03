@@ -6,7 +6,7 @@ import requests
 import json
 from typing import Optional, List, Dict, Generator
 from urllib.parse import quote
-from .config import get_config, API_BASE_URL, API_TIMEOUT, NEW_API_BASE_URL, AVAILABLE_MODELS, BACKEND_URL
+from .config import get_config, API_BASE_URL, API_TIMEOUT, NEW_API_BASE_URL, AVAILABLE_MODELS, BACKEND_URL, GEN_API_BASE_URL, fetch_text_models
 from .i18n import get_text
 
 
@@ -217,64 +217,9 @@ class PollinationsAPI:
     
     def get_available_models(self, use_cache: bool = True) -> List[Dict[str, any]]:
         """
-        Get list of available models from API (dynamically fetched)
-
-        Args:
-            use_cache: If True and fetch fails, return hardcoded models
-
-        Returns:
-            List of model information dicts
+        Get text models from gen.pollinations.ai (with 24h file cache).
+        Returns full model metadata: name, description, aliases, paid_only, reasoning, etc.
         """
-        try:
-            # Try to fetch from backend first, then new API
-            if self.use_backend:
-                api_url = f"{self.backend_url}/api/models"
-            else:
-                api_url = f"{self.new_api_url}/models"
-
-            response = requests.get(
-                api_url,
-                headers=self._get_headers(),
-                timeout=10  # Short timeout for fast model list fetch
-            )
-            response.raise_for_status()
-            models_data = response.json()
-
-            # Handle OpenAI-compatible format (new direct API)
-            if isinstance(models_data, dict) and "data" in models_data:
-                models = models_data["data"]
-            else:
-                models = models_data
-
-            # Filter out excluded models (already done by backend, but just in case)
-            excluded = {"midijourney", "openai-audio"}
-
-            # Normalize to consistent format: {"name": ..., "description": ...}
-            filtered_models = []
-            for model in models:
-                # Handle both "id" (new API) and "name" (backend) fields
-                name = model.get("id") or model.get("name", "unknown")
-
-                # Skip excluded models
-                if name in excluded:
-                    continue
-
-                # Get description if available
-                description = model.get("description", "")
-
-                filtered_models.append({
-                    "name": name,
-                    "description": description
-                })
-
-            return filtered_models
-
-        except requests.exceptions.RequestException as e:
-            if use_cache:
-                # Fallback to hardcoded models if fetch fails
-                return [
-                    {"name": name, "description": desc}
-                    for name, desc in AVAILABLE_MODELS.items()
-                ]
-            else:
-                raise Exception(f"Failed to fetch models: {str(e)}")
+        from pathlib import Path
+        config_dir = Path.home() / ".config" / "polly"
+        return fetch_text_models(config_dir)

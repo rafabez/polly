@@ -508,31 +508,21 @@ def interactive_model_selection(config) -> Optional[str]:
     Returns:
         Selected model name or None if cancelled
     """
-    from .config import AVAILABLE_MODELS
-    from .api import PollinationsAPI
+    from .config import AVAILABLE_MODELS, fetch_text_models
 
     current_model = config.get("default_model")
-
-    # Try to fetch dynamic models, fallback to hardcoded
-    try:
-        api = PollinationsAPI()
-        models = api.get_available_models(use_cache=True)
-    except:
-        models = [{"name": k, "description": v} for k, v in AVAILABLE_MODELS.items()]
+    models = fetch_text_models()
 
     print_info(f"{get_text('msg.available_models')}\n")
 
-    # Display numbered list
     for idx, model in enumerate(models, 1):
         name = model.get("name", "unknown")
         description = model.get("description", "")
+        flags = ""
+        if model.get("reasoning"):
+            flags += " [reasoning]"
         is_default = " ✓" if name == current_model else ""
-
-        # Format output
-        if description and description != name and "unknown" not in description.lower():
-            console.print(f"  [cyan]{idx}.[/cyan] [bold]{name:18}[/bold] - {description}[green]{is_default}[/green]")
-        else:
-            console.print(f"  [cyan]{idx}.[/cyan] [bold]{name}[/bold][green]{is_default}[/green]")
+        console.print(f"  [cyan]{idx:>2}.[/cyan] [bold]{name:<25}[/bold] {description}{flags}[green]{is_default}[/green]")
 
     print()
 

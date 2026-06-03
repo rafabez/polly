@@ -9,7 +9,7 @@ from pathlib import Path
 from .cli import create_parser, validate_args, get_mode_from_args
 from .help_formatter import print_help
 from .api import PollinationsAPI
-from .config import get_config, AVAILABLE_MODELS
+from .config import get_config, AVAILABLE_MODELS, fetch_text_models
 from .prompts import get_prompt, get_available_modes
 from .utils import (
     print_response, print_error, print_info, print_success, print_warning,
@@ -28,32 +28,21 @@ def handle_config_commands(args):
     if args.list_models:
         print_info(f"{get_text('msg.available_models')}\n")
 
-        # Try to fetch models dynamically from API
-        try:
-            # Create API instance (use direct API if flag is set)
-            use_direct = getattr(args, 'direct_api', False)
-            api_temp = PollinationsAPI(use_direct_api=use_direct)
-            models = api_temp.get_available_models(use_cache=True)
+        models = fetch_text_models()
+        default_model = config.get("default_model")
 
-            for model in models:
-                name = model.get("name", "unknown")
-                description = model.get("description", "")
-                default = " (default)" if name == config.get("default_model") else ""
+        for model in models:
+            name = model.get("name", "unknown")
+            description = model.get("description", "")
+            flags = ""
+            if model.get("reasoning"):
+                flags += " [reasoning]"
+            if model.get("is_specialized"):
+                flags += " [specialized]"
+            is_default = " (default)" if name == default_model else ""
+            print(f"  • {name:<25} {description}{flags}{is_default}")
 
-                # Filter out placeholder/unknown descriptions
-                # Show description only if it's valid (not empty, not same as name, not containing "unknown")
-                if description and description != name and "unknown" not in description.lower():
-                    print(f"  • {name:15} - {description}{default}")
-                else:
-                    # Just show the model name when description is not available
-                    print(f"  • {name}{default}")
-        except Exception as e:
-            # Fallback to hardcoded models if API fetch fails
-            print(f"  ({get_text('msg.cached_models')})\n")
-            for model, description in AVAILABLE_MODELS.items():
-                default = " (default)" if model == config.get("default_model") else ""
-                print(f"  • {model:15} - {description}{default}")
-
+        print(f"\n  {len(models)} models available. Use -m <name> to select.")
         return True
 
     if args.list_modes:

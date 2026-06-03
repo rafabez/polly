@@ -5,9 +5,18 @@ Command-line interface for Polly
 import argparse
 import sys
 from typing import Optional
-from .config import get_config, AVAILABLE_MODELS
+from .config import get_config, AVAILABLE_MODELS, fetch_text_models
 from .prompts import get_available_modes
 from . import __version__
+
+
+def _get_model_names() -> list:
+    """Return canonical model names for argparse choices (cached, fast after first call)."""
+    try:
+        models = fetch_text_models()
+        return [m["name"] for m in models]
+    except Exception:
+        return list(AVAILABLE_MODELS.keys())
 
 
 class OptionalIntAction(argparse.Action):
@@ -32,7 +41,8 @@ class OptionalIntAction(argparse.Action):
 
 def create_parser() -> argparse.ArgumentParser:
     """Create and configure argument parser"""
-    
+    model_names = _get_model_names()
+
     parser = argparse.ArgumentParser(
         prog="polly",
         description='Polly - Cross-Platform AI Terminal Assistant',
@@ -114,8 +124,8 @@ def create_parser() -> argparse.ArgumentParser:
     params_group = parser.add_argument_group("parameters")
     params_group.add_argument(
         "-m", "--model",
-        choices=list(AVAILABLE_MODELS.keys()),
-        help="Select AI model (default: gemini)"
+        choices=model_names,
+        help="Select AI model (use -lm to list all available models)"
     )
     params_group.add_argument(
         "--temperature",
@@ -174,7 +184,7 @@ def create_parser() -> argparse.ArgumentParser:
         metavar="MODEL",
         nargs="?",
         const="__interactive__",
-        choices=list(AVAILABLE_MODELS.keys()) + ["__interactive__"],
+        choices=model_names + ["__interactive__"],
         help="Set default model (interactive if no model specified)"
     )
     config_group.add_argument(

@@ -3,6 +3,8 @@ Configuration management for Polly
 """
 
 import os
+import time
+import json as _json
 import locale
 import platform
 import yaml
@@ -108,16 +110,62 @@ DEFAULT_CONFIG = {
 # Backend URL (hardcoded - not user-configurable)
 BACKEND_URL = "https://api.interzonesec.com"
 
-# Available models with descriptions (ordered by reliability)
+# Gen API — authoritative source for model metadata (with aliases, pricing, flags)
+GEN_API_BASE_URL = "https://gen.pollinations.ai"
+MODELS_CACHE_TTL = 86400  # 24 hours
+
+# Fallback models — used only when gen.pollinations.ai is unreachable
 AVAILABLE_MODELS = {
-    "openai-large": "OpenAI GPT-4.1 - Most capable (default)",
-    "mistral": "Mistral Small 3.2 24B - Balanced performance",
-    "deepseek": "DeepSeek V3.1 - Advanced reasoning model",
-    "qwen-coder": "Qwen 2.5 Coder 32B - Specialized for coding",
-    "openai": "OpenAI GPT-5 Nano - Fast (temperature=1.0 only)",
-    "gemini": "Gemini 2.5 Flash Lite - Fast (currently unstable)",
-    "gemini-search": "Gemini 2.5 Flash Lite with Google Search",
+    "openai-large": "GPT-5.4 - Most Powerful & Intelligent",
+    "openai": "GPT-5.4 Nano - Fast & Balanced",
+    "openai-fast": "GPT-5 Nano - Ultra Fast & Affordable",
+    "mistral": "Mistral Small 3.2 - Balanced performance",
+    "deepseek": "DeepSeek V4 Flash - Fast Reasoning & Coding",
+    "qwen-coder": "Qwen3 Coder 30B - Specialized for Code Generation",
+    "gemini-search": "Gemini 2.5 Flash Lite Search - Web-grounded responses",
 }
+
+
+def fetch_text_models(config_dir: Path = None) -> list:
+    """
+    Fetch text models from gen.pollinations.ai with a 24h file cache.
+    Returns list of dicts: {name, description, aliases, paid_only, reasoning, ...}
+    Falls back to AVAILABLE_MODELS when the API is unreachable.
+    """
+    import requests as _req
+
+    if config_dir is None:
+        config_dir = Path.home() / ".config" / "polly"
+
+    cache_file = config_dir / "models_cache.json"
+
+    # Return cached data if still fresh
+    if cache_file.exists():
+        try:
+            with open(cache_file, "r") as f:
+                cache = _json.load(f)
+            if time.time() - cache.get("timestamp", 0) < MODELS_CACHE_TTL:
+                return cache["models"]
+        except Exception:
+            pass
+
+    # Fetch from gen API
+    try:
+        r = _req.get(f"{GEN_API_BASE_URL}/text/models", timeout=8)
+        r.raise_for_status()
+        models = r.json()
+        try:
+            config_dir.mkdir(parents=True, exist_ok=True)
+            with open(cache_file, "w") as f:
+                _json.dump({"timestamp": time.time(), "models": models}, f)
+        except Exception:
+            pass
+        return models
+    except Exception:
+        return [
+            {"name": k, "description": v, "aliases": [], "paid_only": False}
+            for k, v in AVAILABLE_MODELS.items()
+        ]
 
 # Temperature Presets
 TEMPERATURE_PRESETS = {
