@@ -524,6 +524,85 @@ Bypass proxy backend and use Pollinations.ai directly:
 polly --direct-api "Your query here"
 ```
 
+### Execute Commands with Confirmation
+
+Polly generates a command and runs it through a safety layer — every command is
+classified (SAFE → CAUTION → DESTRUCTIVE → BLOCKED) and requires explicit
+approval before execution:
+
+```bash
+# Generate and execute (asks for confirmation)
+polly -X "create a folder called demo with a README inside"
+
+# See what would run without executing
+polly -c --dry-run "delete all .tmp files recursively"
+
+# OS-aware skills: uses the right package manager for your system
+polly --list-skills
+polly --skill packages "install htop"   # → apt/brew/winget automatically
+polly --skill disk "show largest dirs"
+```
+
+### Agent Mode (multi-step tasks)
+
+Enable the agent once, then give it goals — it plans, uses tools
+(`run_command`, `read_file`, `write_file`), and asks your confirmation for each
+action. Everything is rollback-able.
+
+```bash
+polly --enable-agent                          # enable once, saved to config
+polly -A -m openai-large "set up a Python venv and install requests"
+polly --undo-last                             # reverse what the agent changed
+polly --transactions                          # list recent agent tasks
+```
+
+### Vision / Screenshot
+
+Let Polly reason about an image or the current screen:
+
+```bash
+polly --see error_screenshot.png "what's causing this error?"
+polly --see "describe what's on my screen"   # captures screenshot automatically
+polly --see diagram.png "explain this architecture"
+```
+
+### Config File Editor
+
+Edit any config file with a plain-language instruction — Polly shows a unified
+diff and writes a timestamped backup before touching anything:
+
+```bash
+polly --edit ~/.bashrc "add alias ll='ls -la' and alias gs='git status'"
+polly --revert ~/.bashrc    # restore previous backup if needed
+```
+
+### Local & Custom Providers (Ollama, OpenAI, LM Studio)
+
+Point Polly at any OpenAI-compatible endpoint:
+
+```bash
+# Use a local Ollama model (no internet required)
+polly --provider ollama -m llama3.2 "explain recursion"
+polly --provider ollama -lm              # list locally installed models
+
+# Use OpenAI directly
+polly --provider openai --api-key sk-... -m gpt-4o "hello"
+
+# Persist as default
+polly -C   # set provider_type=ollama, default_model=llama3.2
+```
+
+### System Context
+
+Polly detects your OS, shell, and package manager and injects that context into
+every prompt so advice is always platform-specific:
+
+```bash
+polly --show-system     # see what Polly knows about your machine
+polly --rescan          # force a refresh (cached 24h by default)
+polly -c "install docker"   # → apt/brew/winget, not generic
+```
+
 ### Pipeline Integration
 
 Polly works seamlessly in Unix pipelines:

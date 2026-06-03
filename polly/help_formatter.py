@@ -70,6 +70,8 @@ def print_help():
     params_table.add_row("--base-url URL", get_text("param.base_url"))
     params_table.add_row("--api-key KEY", get_text("param.api_key"))
     params_table.add_row("--no-memory", get_text("param.no_memory"))
+    params_table.add_row("--cache", get_text("param.cache"))
+    params_table.add_row("--no-cache", get_text("param.no_cache"))
 
     console.print(params_table)
     console.print()
@@ -175,22 +177,59 @@ def print_help():
     console.print(f"    [green]polly \"add memoization to it\"[/green]  [dim]({get_text('example.memory_followup')})[/dim]")
     console.print(f"    [green]polly --context[/green]  [dim]({get_text('example.memory_context')})[/dim]")
     console.print(f"    [green]polly --forget[/green]  [dim]({get_text('example.memory_forget')})[/dim]")
+    console.print()
+
+    # Execute / dry-run
+    console.print("  [dim cyan]Execute Commands:[/dim cyan]")
+    console.print(f"    [green]polly -X \"create a demo folder\"[/green]  [dim]({get_text('example.execute_desc')})[/dim]")
+    console.print(f"    [green]polly -c --dry-run \"remove log files\"[/green]  [dim]({get_text('example.dryrun_desc')})[/dim]")
+    console.print()
+
+    # Agent
+    console.print("  [dim cyan]Agent Mode:[/dim cyan]")
+    console.print("    [green]polly --enable-agent[/green]")
+    console.print(f"    [green]polly -A -m openai-large \"set up a Python venv\"[/green]  [dim]({get_text('example.agent_desc')})[/dim]")
+    console.print(f"    [green]polly --undo-last[/green]  [dim]({get_text('example.undo_desc')})[/dim]")
+    console.print()
+
+    # Vision
+    console.print("  [dim cyan]Vision / Screenshot:[/dim cyan]")
+    console.print(f"    [green]polly --see error.png \"what's wrong?\"[/green]  [dim]({get_text('example.see_file_desc')})[/dim]")
+    console.print(f"    [green]polly --see \"what's on my screen?\"[/green]  [dim]({get_text('example.see_screen_desc')})[/dim]")
+    console.print()
+
+    # OS Skills
+    console.print("  [dim cyan]OS Skills:[/dim cyan]")
+    console.print(f"    [green]polly --list-skills[/green]  [dim]({get_text('example.skill_list_desc')})[/dim]")
+    console.print(f"    [green]polly --skill packages \"install htop\"[/green]  [dim]({get_text('example.skill_run_desc')})[/dim]")
+    console.print()
+
+    # Config file editor
+    console.print("  [dim cyan]Config File Editor:[/dim cyan]")
+    console.print(f"    [green]polly --edit ~/.bashrc \"add alias ll='ls -la'\"[/green]  [dim]({get_text('example.edit_desc')})[/dim]")
+    console.print(f"    [green]polly --revert ~/.bashrc[/green]  [dim]({get_text('example.revert_desc')})[/dim]")
+    console.print()
+
+    # Local / custom providers
+    console.print("  [dim cyan]Local & Custom Providers:[/dim cyan]")
+    console.print(f"    [green]polly --provider ollama -m llama3.2 \"explain recursion\"[/green]  [dim]({get_text('example.provider_ollama_desc')})[/dim]")
+    console.print(f"    [green]polly --provider lmstudio -lm[/green]  [dim]({get_text('example.provider_lm_desc')})[/dim]")
 
     console.print()
 
-    # Usage notes
+    # Tips (fully i18n — no hardcoded language)
     console.print(f"[bold yellow][i]{get_text('help.tips')}[/i][/bold yellow]")
     console.print(f"  [dim]• {get_text('tip.pipe')}[/dim]")
-    console.print("    [green]cat arquivo.py | polly[/green]  [dim](sem -e)[/dim]")
+    console.print(f"    [green]{get_text('tip.pipe_example')}[/green]")
     console.print()
     console.print(f"  [dim]• {get_text('tip.file_only')}[/dim]")
-    console.print("    [green]polly -e arquivo.py[/green]")
+    console.print(f"    [green]{get_text('tip.explain_example')}[/green]")
     console.print()
     console.print(f"  [dim]• {get_text('tip.model_down')}[/dim]")
-    console.print("    [green]polly --model gemini sua pergunta[/green]")
-    console.print("    [green]polly --model openai sua pergunta[/green]")
+    console.print(f"    [green]{get_text('tip.model_example1')}[/green]")
+    console.print(f"    [green]{get_text('tip.model_example2')}[/green]")
     console.print()
     console.print(f"  [dim]• {get_text('tip.pdf_support')}[/dim]")
-    console.print("    [green]polly -e relatorio.pdf[/green]  [dim](ler PDF)[/dim]")
-    console.print("    [green]polly resumo --pdf saida.pdf[/green]  [dim](gerar PDF)[/dim]")
+    console.print(f"    [green]{get_text('tip.pdf_read_example')}[/green]")
+    console.print(f"    [green]{get_text('tip.pdf_write_example')}[/green]")
     console.print()

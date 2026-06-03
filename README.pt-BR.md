@@ -337,6 +337,66 @@ referrer: interzonesec.com
 language: pt  # pt, en, portuguese, english
 ```
 
+## 💎 Funcionalidades Avançadas
+
+### Executar Comandos com Confirmação
+
+Polly gera um comando e roda pela camada de segurança — toda ação é classificada
+(SAFE → CAUTION → DESTRUCTIVE → BLOCKED) e precisa de aprovação explícita:
+
+```bash
+polly -X "criar pasta demo com README dentro"
+polly -c --dry-run "apagar arquivos .tmp recursivamente"
+
+polly --list-skills
+polly --skill packages "instalar htop"   # → apt/brew/winget automaticamente
+polly --skill disk "mostrar diretórios maiores"
+```
+
+### Modo Agente (tarefas em múltiplos passos)
+
+```bash
+polly --enable-agent
+polly -A -m openai-large "configurar venv Python e instalar requests"
+polly --undo-last          # desfaz o que o agente mudou
+polly --transactions       # lista tarefas recentes
+```
+
+### Visão / Captura de Tela
+
+```bash
+polly --see erro.png "o que está causando esse erro?"
+polly --see "descreva minha tela"      # captura tela automaticamente
+```
+
+### Editor de Arquivo de Config
+
+```bash
+polly --edit ~/.bashrc "adicionar alias ll='ls -la'"
+polly --revert ~/.bashrc    # restaura backup anterior
+```
+
+### Providers Locais e Customizados (Ollama, OpenAI, LM Studio)
+
+```bash
+# Ollama local (sem internet)
+polly --provider ollama -m llama3.2 "explique recursão"
+polly --provider ollama -lm      # lista modelos instalados localmente
+
+# OpenAI direta
+polly --provider openai --api-key sk-... -m gpt-4o "olá"
+```
+
+### Contexto do Sistema
+
+```bash
+polly --show-system     # mostra o que o Polly sabe da sua máquina
+polly --rescan          # atualiza (cache 24h por padrão)
+polly -c "instalar docker"   # → usa apt/brew/winget correto
+```
+
+---
+
 ## Requisitos
 
 - Python 3.8 ou superior

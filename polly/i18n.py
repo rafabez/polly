@@ -37,6 +37,8 @@ TRANSLATIONS = {
         "param.language": "Language for prompts (default: pt - Portuguese)",
         "param.direct_api": "Use direct Pollinations API (bypass proxy backend)",
         "param.no_memory": "Don't use/update conversation memory for this query",
+        "param.cache": "Enable response cache for this query",
+        "param.no_cache": "Disable response cache for this query",
 
         # Output
         "output.file": "Save response to file",
@@ -145,6 +147,12 @@ TRANSLATIONS = {
         "tip.file_only": "The -e flag is only for files",
         "tip.model_down": "If a model is down, try another",
         "tip.pdf_support": "PDF support (read and write)",
+        "tip.pipe_example": "cat file.py | polly",
+        "tip.explain_example": "polly -e file.py",
+        "tip.model_example1": "polly --model mistral your question",
+        "tip.model_example2": "polly --model openai your question",
+        "tip.pdf_read_example": "polly -e report.pdf",
+        "tip.pdf_write_example": "polly summarise --pdf out.pdf",
 
         # Examples
         "example.basic": "Basic question",
@@ -166,6 +174,18 @@ TRANSLATIONS = {
         "example.memory_followup": "follow-up remembers the previous question",
         "example.memory_context": "show active conversation memory",
         "example.memory_forget": "clear this terminal's memory",
+        "example.execute_desc": "generate and run with confirmation",
+        "example.dryrun_desc": "show command without executing",
+        "example.agent_desc": "agent completes multi-step task with tools",
+        "example.see_file_desc": "describe what is in the image",
+        "example.see_screen_desc": "capture screen and describe it",
+        "example.skill_list_desc": "list available OS skills",
+        "example.skill_run_desc": "install a package using the right tool",
+        "example.provider_ollama_desc": "use a local Ollama model",
+        "example.provider_lm_desc": "list models from LM Studio",
+        "example.edit_desc": "edit file with a plain-language instruction",
+        "example.revert_desc": "restore previous backup",
+        "example.undo_desc": "undo last agent task",
 
         # Messages
         "msg.available_models": "Available AI Models:",
@@ -315,6 +335,8 @@ TRANSLATIONS = {
         "param.language": "Idioma dos prompts (padrão: pt - Português)",
         "param.direct_api": "Usa API direta Pollinations (sem proxy backend)",
         "param.no_memory": "Não usa/atualiza a memória de conversa nesta pergunta",
+        "param.cache": "Habilita cache de resposta para esta consulta",
+        "param.no_cache": "Desabilita cache de resposta para esta consulta",
 
         # Output
         "output.file": "Salva resposta em arquivo",
@@ -423,6 +445,12 @@ TRANSLATIONS = {
         "tip.file_only": "O flag -e é apenas para arquivos",
         "tip.model_down": "Se um modelo estiver fora do ar, tente outro",
         "tip.pdf_support": "Suporte a PDF (leitura e escrita)",
+        "tip.pipe_example": "cat arquivo.py | polly",
+        "tip.explain_example": "polly -e arquivo.py",
+        "tip.model_example1": "polly --model mistral sua pergunta",
+        "tip.model_example2": "polly --model openai sua pergunta",
+        "tip.pdf_read_example": "polly -e relatorio.pdf",
+        "tip.pdf_write_example": "polly resumo --pdf saida.pdf",
 
         # Examples
         "example.basic": "Pergunta básica",
@@ -444,6 +472,18 @@ TRANSLATIONS = {
         "example.memory_followup": "a continuação lembra da pergunta anterior",
         "example.memory_context": "mostra a memória de conversa ativa",
         "example.memory_forget": "limpa a memória deste terminal",
+        "example.execute_desc": "gera e executa com confirmação",
+        "example.dryrun_desc": "mostra comando sem executar",
+        "example.agent_desc": "agente conclui tarefa em múltiplos passos com ferramentas",
+        "example.see_file_desc": "descreve o que há na imagem",
+        "example.see_screen_desc": "captura tela e descreve",
+        "example.skill_list_desc": "lista skills de OS disponíveis",
+        "example.skill_run_desc": "instala pacote usando ferramenta correta",
+        "example.provider_ollama_desc": "usa modelo local via Ollama",
+        "example.provider_lm_desc": "lista modelos do LM Studio",
+        "example.edit_desc": "edita arquivo com instrução em linguagem natural",
+        "example.revert_desc": "restaura backup anterior",
+        "example.undo_desc": "desfaz última tarefa do agente",
 
         # Messages
         "msg.available_models": "Modelos de IA Disponíveis:",
