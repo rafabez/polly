@@ -10,7 +10,7 @@ from .help_formatter import print_help
 from .api import PollinationsAPI
 from .config import get_config, fetch_text_models, fetch_health_stats
 from .prompts import get_prompt, get_available_modes
-from . import memory, cache, system_context, executor
+from . import memory, cache, system_context, executor, config_edit
 from .utils import (
     print_response, print_error, print_info, print_success, print_warning,
     print_code, read_stdin, read_file,
@@ -77,6 +77,10 @@ def handle_config_commands(args):
             print(get_text("msg.memory_log_note", path=memory.history_path_str()))
         else:
             print_info(get_text("msg.memory_empty"))
+        return True
+
+    if args.revert:
+        config_edit.revert_file(args.revert)
         return True
 
     if args.rescan:
@@ -656,7 +660,8 @@ def main():
         args.purge or
         args.update or
         getattr(args, "rescan", False) or
-        getattr(args, "show_system", False)
+        getattr(args, "show_system", False) or
+        bool(getattr(args, "revert", None))
     )
 
     if config.is_first_run and not is_config_command:
@@ -669,6 +674,16 @@ def main():
     # Initialize API (with direct API flag if specified)
     use_direct_api = getattr(args, 'direct_api', False)
     api = PollinationsAPI(use_direct_api=use_direct_api)
+
+    # Handle --edit FILE "instruction"
+    if getattr(args, "edit", None):
+        instruction = " ".join(args.prompt) if args.prompt else ""
+        if not instruction:
+            print_error(get_text("msg.no_input"))
+            sys.exit(1)
+        dry = getattr(args, "dry_run", False)
+        config_edit.edit_file(api, args.edit, instruction, dry_run=dry)
+        return
 
     # Handle interactive mode
     if args.interactive:

@@ -53,6 +53,81 @@ def test_translate_prompt():
     assert "Hello" in user
 
 
+class TestConfigEdit:
+    """WU-12: Config-file assistant."""
+
+    def setup_method(self):
+        from polly import config_edit as ce
+        self.ce = ce
+
+    def test_strip_fences_removes_backticks(self):
+        raw = "```yaml\nkey: value\n```"
+        assert self.ce._strip_fences(raw) == "key: value\n"
+
+    def test_strip_fences_noop_on_plain(self):
+        raw = "key: value"
+        assert self.ce._strip_fences(raw) == "key: value"
+
+    def test_edit_file_too_big(self, tmp_path, monkeypatch):
+        from polly.config import get_config
+        cfg = get_config()
+        monkeypatch.setattr(cfg, "get", lambda k, d=None: 0 if k == "edit_max_kb" else d)
+        big = tmp_path / "big.conf"
+        big.write_text("x" * 1000)
+        result = self.ce.edit_file(None, str(big), "instruction")
+        assert result is False
+
+    def test_edit_file_not_found(self):
+        result = self.ce.edit_file(None, "/nonexistent/file.conf", "instruction")
+        assert result is False
+
+    def test_edit_file_no_changes(self, tmp_path, monkeypatch):
+        """If model returns the same content, report no changes."""
+        original = "key: value\n"
+        f = tmp_path / "test.conf"
+        f.write_text(original)
+
+        class FakeAPI:
+            def chat_completion(self, messages, temperature=0.1):
+                return original  # no change
+
+        result = self.ce.edit_file(FakeAPI(), str(f), "do nothing")
+        assert result is True
+        assert not list(f.parent.glob("*.bak"))  # no backup created
+
+    def test_edit_file_diff_backup_write(self, tmp_path, monkeypatch):
+        """Full edit: diff shown, confirmed, backup created, file updated."""
+        f = tmp_path / "cfg.conf"
+        f.write_text("name: old\n")
+
+        class FakeAPI:
+            def chat_completion(self, messages, temperature=0.1):
+                return "name: new\n"
+
+        monkeypatch.setattr("builtins.input", lambda _: "y")
+        result = self.ce.edit_file(FakeAPI(), str(f), "rename to new")
+        assert result is True
+        assert "new" in f.read_text()
+        backups = list(tmp_path.glob("cfg.conf.*.bak"))
+        assert len(backups) == 1
+        assert "old" in backups[0].read_text()
+
+    def test_revert_file(self, tmp_path):
+        f = tmp_path / "app.conf"
+        f.write_text("name: new\n")
+        bak = tmp_path / "app.conf.20260101-120000.bak"
+        bak.write_text("name: old\n")
+        result = self.ce.revert_file(str(f))
+        assert result is True
+        assert f.read_text() == "name: old\n"
+
+    def test_revert_no_backup(self, tmp_path):
+        f = tmp_path / "nobackup.conf"
+        f.write_text("x\n")
+        result = self.ce.revert_file(str(f))
+        assert result is False
+
+
 class TestExecutor:
     """WU-11: Execute-with-confirmation."""
 

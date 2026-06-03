@@ -277,6 +277,16 @@ def create_parser() -> argparse.ArgumentParser:
         help="Clear the conversation memory for this terminal"
     )
     info_group.add_argument(
+        "--edit",
+        metavar="FILE",
+        help="Edit a file with a plain-language instruction (prompt required)"
+    )
+    info_group.add_argument(
+        "--revert",
+        metavar="FILE",
+        help="Revert a file to its most recent Polly backup"
+    )
+    info_group.add_argument(
         "--update",
         action="store_true",
         help="Update Polly to the latest version from GitHub"
@@ -404,7 +414,8 @@ def validate_args(args) -> Optional[str]:
         args.purge or
         args.update or
         args.rescan or
-        args.show_system
+        args.show_system or
+        bool(args.revert)
     )
 
     if needs_prompt and not args.prompt and not args.explain:

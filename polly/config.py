@@ -119,6 +119,7 @@ DEFAULT_CONFIG = {
     "safety_denylist": [],     # regex patterns forced to BLOCKED (wins over allowlist)
     "execute_enabled": True,   # master switch for -X / --execute
     "execute_autoconfirm_safe": False,  # auto-confirm SAFE commands without prompting
+    "edit_max_kb": 256,  # max file size for --edit (KB)
     # System context (injects OS/shell/pkg info into prompts)
     "system_context_enabled": True,
     "system_context_ttl_hours": 24,
