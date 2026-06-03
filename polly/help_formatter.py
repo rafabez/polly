@@ -114,6 +114,8 @@ def print_help():
     info_table.add_row("-lmo, --list-modes", get_text("info.list_modes"))
     info_table.add_row("--context", get_text("info.context"))
     info_table.add_row("--forget", get_text("info.forget"))
+    info_table.add_row("--skill NAME", get_text("info.skill"))
+    info_table.add_row("--list-skills", get_text("info.list_skills"))
     info_table.add_row("--edit FILE", get_text("info.edit"))
     info_table.add_row("--revert FILE", get_text("info.revert"))
     info_table.add_row("--update", get_text("info.update"))

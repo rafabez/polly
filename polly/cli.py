@@ -277,6 +277,16 @@ def create_parser() -> argparse.ArgumentParser:
         help="Clear the conversation memory for this terminal"
     )
     info_group.add_argument(
+        "--skill",
+        metavar="NAME",
+        help="Run an OS skill with the prompt as the task"
+    )
+    info_group.add_argument(
+        "--list-skills",
+        action="store_true",
+        help="List available OS skills"
+    )
+    info_group.add_argument(
         "--edit",
         metavar="FILE",
         help="Edit a file with a plain-language instruction (prompt required)"
@@ -415,7 +425,8 @@ def validate_args(args) -> Optional[str]:
         args.update or
         args.rescan or
         args.show_system or
-        bool(args.revert)
+        bool(args.revert) or
+        args.list_skills
     )
 
     if needs_prompt and not args.prompt and not args.explain:

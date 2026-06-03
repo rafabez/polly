@@ -53,6 +53,85 @@ def test_translate_prompt():
     assert "Hello" in user
 
 
+class TestSkills:
+    """WU-13: OS skills registry and starter skills."""
+
+    def test_registry_discovers_skills(self):
+        from polly.skills import list_skills, _REGISTRY
+        _REGISTRY.clear()
+        skills = list_skills()
+        assert len(skills) >= 3
+        names = [s["name"] for s in skills]
+        assert "packages" in names
+        assert "services" in names
+        assert "disk" in names
+
+    def test_get_skill_exact(self):
+        from polly.skills import get_skill
+        mod = get_skill("packages")
+        assert mod is not None
+        assert hasattr(mod, "run")
+
+    def test_get_skill_prefix(self):
+        from polly.skills import get_skill
+        mod = get_skill("pkg")  # prefix of "packages"... no, that won't match
+        # Use actual prefix
+        mod = get_skill("pack")
+        assert mod is not None
+
+    def test_get_skill_not_found(self):
+        from polly.skills import get_skill
+        assert get_skill("nonexistent_xyz") is None
+
+    def test_packages_apt_install(self):
+        from polly.skills import packages
+        ctx = {"pkg_manager": "apt", "os": "linux"}
+        cmds = packages.run("install htop", ctx)
+        assert any("apt install htop" in c for c in cmds)
+
+    def test_packages_winget_install(self):
+        from polly.skills import packages
+        ctx = {"pkg_manager": "winget", "os": "win32"}
+        cmds = packages.run("install git", ctx)
+        assert any("winget install git" in c for c in cmds)
+
+    def test_packages_brew_search(self):
+        from polly.skills import packages
+        ctx = {"pkg_manager": "brew", "os": "darwin"}
+        cmds = packages.run("search python", ctx)
+        assert any("brew search python" in c for c in cmds)
+
+    def test_services_systemd_status(self):
+        from polly.skills import services
+        ctx = {"os": "linux"}
+        cmds = services.run("check nginx status", ctx)
+        assert any("systemctl status nginx" in c for c in cmds)
+
+    def test_services_windows_start(self):
+        from polly.skills import services
+        ctx = {"os": "win32"}
+        cmds = services.run("start the Print Spooler service", ctx)
+        assert any("Start-Service" in c for c in cmds)
+
+    def test_disk_free_linux(self):
+        from polly.skills import disk
+        ctx = {"os": "linux"}
+        cmds = disk.run("show free space", ctx)
+        assert cmds == ["df -h"]
+
+    def test_disk_largest_linux(self):
+        from polly.skills import disk
+        ctx = {"os": "linux"}
+        cmds = disk.run("find biggest directories", ctx)
+        assert "du" in cmds[0]
+
+    def test_disk_windows(self):
+        from polly.skills import disk
+        ctx = {"os": "win32"}
+        cmds = disk.run("free space", ctx)
+        assert "Get-PSDrive" in cmds[0]
+
+
 class TestConfigEdit:
     """WU-12: Config-file assistant."""
 

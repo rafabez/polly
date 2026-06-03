@@ -83,6 +83,38 @@ def handle_config_commands(args):
         config_edit.revert_file(args.revert)
         return True
 
+    if args.list_skills:
+        from .skills import list_skills
+        print_info(f"{get_text('msg.skills_header')}\n")
+        lang = config.get_effective_language()
+        for skill in list_skills():
+            desc_key = "description_pt" if lang == "pt" else "description_en"
+            desc = skill.get(desc_key) or skill.get("description_en", "")
+            print(f"  • {skill['name']:<12} {desc}")
+        return True
+
+    if args.skill:
+        from .skills import run_skill
+        from . import system_context as _sc
+        task = " ".join(args.prompt) if args.prompt else ""
+        if not task:
+            print_error(get_text("msg.no_input"))
+            sys.exit(1)
+        ctx = _sc.get_or_collect(config.get("system_context_ttl_hours", 24))
+        cmds = run_skill(args.skill, task, ctx)
+        if not cmds:
+            print_info(get_text("msg.skill_not_found", name=args.skill))
+            return True
+        dry = getattr(args, "dry_run", False)
+        if len(cmds) == 1:
+            cmd_to_run = cmds[0]
+        else:
+            cmd_to_run = executor.pick_command(cmds)
+        if cmd_to_run:
+            print_code(cmd_to_run, language="bash")
+            executor.execute(cmd_to_run, dry_run=dry)
+        return True
+
     if args.rescan:
         ctx = system_context.collect()
         system_context.save(ctx)
@@ -661,7 +693,8 @@ def main():
         args.update or
         getattr(args, "rescan", False) or
         getattr(args, "show_system", False) or
-        bool(getattr(args, "revert", None))
+        bool(getattr(args, "revert", None)) or
+        getattr(args, "list_skills", False)
     )
 
     if config.is_first_run and not is_config_command:
