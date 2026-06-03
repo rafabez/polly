@@ -231,6 +231,49 @@ Você: exit
 Info: Até logo!
 ```
 
+### 🧠 Memória de Conversa
+
+O Polly lembra das suas trocas recentes **entre comandos separados** — sem
+precisar entrar no modo interativo. Faça uma pergunta de continuação e ele mantém
+o fio, inclusive quando você cola código:
+
+```bash
+polly "escreva uma função fibonacci em Python"
+polly "agora adicione memoization nessa função"   # lembra da função acima
+```
+
+Como funciona:
+
+- **Automático, por terminal.** Cada janela/aba de terminal tem seu próprio
+  contexto, então dois terminais nunca misturam assuntos.
+- **Com janela de tempo.** O contexto expira após inatividade (padrão 30 min) e
+  recomeça limpo sozinho.
+- **Todos os modos.** Funciona nos modos padrão, comando, explicar, debug,
+  refatorar e traduzir (motivacional é exceção).
+
+Gerenciar:
+
+```bash
+polly --context          # mostra a memória ativa deste terminal
+polly --forget           # limpa a memória deste terminal
+polly --no-memory "..."  # pula a memória para uma pergunta avulsa
+```
+
+#### Onde ficam a memória e os logs
+
+| O quê | Caminho |
+|-------|---------|
+| Memória de sessão (por terminal) | `~/.config/polly/sessions/<id>.json` |
+| Log completo das conversas (legível) | `~/.config/polly/history.log` |
+| Cache de metadados dos modelos | `~/.config/polly/models_cache.json` |
+| Cache de saúde dos modelos ao vivo | `~/.config/polly/health_cache.json` |
+| Configuração principal | `~/.config/polly/config.yaml` |
+
+> No Windows ficam em `C:\Users\<você>\.config\polly\`.
+
+Ajuste o comportamento no `config.yaml`: `memory_enabled`, `memory_ttl_minutes`,
+`memory_max_turns`, `memory_max_chars`, `memory_max_response_chars`.
+
 ### Tradução
 
 ```bash

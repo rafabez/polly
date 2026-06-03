@@ -319,6 +319,51 @@ polly My server is running slow, what should I check?
 
 ---
 
+## 🧠 Conversation Memory
+
+Polly remembers your recent exchanges **between separate commands** — no need to
+enter interactive mode. Ask a follow-up and it keeps the thread, even when you
+paste code:
+
+```bash
+polly "write a Python fibonacci function"
+polly "now add memoization to that function"   # remembers the function above
+```
+
+How it works:
+
+- **Automatic, per terminal.** Each terminal window/tab keeps its own context, so
+  two terminals never mix topics.
+- **Time-windowed.** Context expires after inactivity (default 30 min) and starts
+  fresh on its own.
+- **All modes.** Works in default, command, explain, debug, refactor and translate
+  modes (motivational is excluded).
+
+Manage it:
+
+```bash
+polly --context          # show the active memory for this terminal
+polly --forget           # clear this terminal's memory
+polly --no-memory "..."  # skip memory for a single one-off question
+```
+
+### Where memory & logs live
+
+| What | Path |
+|------|------|
+| Session memory (per terminal) | `~/.config/polly/sessions/<id>.json` |
+| Full conversation log (all chats, human-readable) | `~/.config/polly/history.log` |
+| Model metadata cache | `~/.config/polly/models_cache.json` |
+| Live-model health cache | `~/.config/polly/health_cache.json` |
+| Main config | `~/.config/polly/config.yaml` |
+
+> On Windows these are under `C:\Users\<you>\.config\polly\`.
+
+Tune behavior in `config.yaml`: `memory_enabled`, `memory_ttl_minutes`,
+`memory_max_turns`, `memory_max_chars`, `memory_max_response_chars`.
+
+---
+
 ## ⚙️ Configuration
 
 ### View Configuration

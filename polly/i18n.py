@@ -89,6 +89,9 @@ TRANSLATIONS = {
         "example.interactive_config": "Edit all settings in one place",
         "example.list_models": "List all models",
         "example.list_modes": "List all modes",
+        "example.memory_followup": "follow-up remembers the previous question",
+        "example.memory_context": "show active conversation memory",
+        "example.memory_forget": "clear this terminal's memory",
 
         # Messages
         "msg.available_models": "Available AI Models:",
@@ -284,6 +287,9 @@ TRANSLATIONS = {
         "example.interactive_config": "Editar todas configurações em um lugar",
         "example.list_models": "Listar todos os modelos",
         "example.list_modes": "Listar todos os modos",
+        "example.memory_followup": "a continuação lembra da pergunta anterior",
+        "example.memory_context": "mostra a memória de conversa ativa",
+        "example.memory_forget": "limpa a memória deste terminal",
 
         # Messages
         "msg.available_models": "Modelos de IA Disponíveis:",

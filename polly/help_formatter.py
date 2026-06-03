@@ -148,6 +148,14 @@ def print_help():
     console.print("  [dim cyan]Quick Info Commands:[/dim cyan]")
     console.print(f"    [green]polly -lm[/green]  [dim]({get_text('example.list_models')})[/dim]")
     console.print(f"    [green]polly -lmo[/green]  [dim]({get_text('example.list_modes')})[/dim]")
+    console.print()
+
+    # Conversation memory
+    console.print("  [dim cyan]Conversation Memory:[/dim cyan]")
+    console.print(f"    [green]polly \"write a fibonacci function\"[/green]")
+    console.print(f"    [green]polly \"add memoization to it\"[/green]  [dim]({get_text('example.memory_followup')})[/dim]")
+    console.print(f"    [green]polly --context[/green]  [dim]({get_text('example.memory_context')})[/dim]")
+    console.print(f"    [green]polly --forget[/green]  [dim]({get_text('example.memory_forget')})[/dim]")
 
     console.print()
 
