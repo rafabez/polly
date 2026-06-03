@@ -53,6 +53,58 @@ def test_translate_prompt():
     assert "Hello" in user
 
 
+class TestVision:
+    """WU-17: Vision/screen context."""
+
+    def setup_method(self):
+        from polly import vision as v
+        self.v = v
+
+    def test_encode_image_png(self, tmp_path):
+        """encode_image returns valid base64 and media type for a PNG."""
+        import base64
+        img = tmp_path / "test.png"
+        # Minimal 1x1 white PNG (valid PNG bytes)
+        png_bytes = bytes([
+            0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+            0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+            0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
+            0xde, 0x00, 0x00, 0x00, 0x0c, 0x49, 0x44, 0x41,
+            0x54, 0x08, 0xd7, 0x63, 0xf8, 0xcf, 0xc0, 0x00,
+            0x00, 0x00, 0x02, 0x00, 0x01, 0xe2, 0x21, 0xbc,
+            0x33, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e,
+            0x44, 0xae, 0x42, 0x60, 0x82,
+        ])
+        img.write_bytes(png_bytes)
+        data, media_type = self.v.encode_image(str(img))
+        assert media_type == "image/png"
+        decoded = base64.standard_b64decode(data)
+        assert decoded == png_bytes
+
+    def test_encode_image_not_found(self):
+        """encode_image raises FileNotFoundError for missing file."""
+        with pytest.raises(FileNotFoundError):
+            self.v.encode_image("/nonexistent/image.png")
+
+    def test_is_vision_model(self):
+        assert self.v.is_vision_model("openai") is True
+        assert self.v.is_vision_model("openai-large") is True
+        assert self.v.is_vision_model("qwen-coder") is False
+
+    def test_media_type_jpeg(self, tmp_path):
+        f = tmp_path / "photo.jpg"
+        f.write_bytes(b"\xff\xd8\xff\xe0" + b"\x00" * 100)
+        _, mt = self.v.encode_image(str(f))
+        assert mt == "image/jpeg"
+
+    def test_media_type_webp(self, tmp_path):
+        f = tmp_path / "img.webp"
+        f.write_bytes(b"RIFF" + b"\x00" * 20)
+        _, mt = self.v.encode_image(str(f))
+        assert mt == "image/webp"
+
+
 class TestRollback:
     """WU-16: Stateful rollback."""
 
@@ -393,6 +445,31 @@ class TestSkills:
         ctx = {"os": "win32"}
         cmds = disk.run("free space", ctx)
         assert "Get-PSDrive" in cmds[0]
+
+    def test_user_skill_discovery(self, tmp_path, monkeypatch):
+        """User skill dropped in ~/.config/polly/skills/ is discovered."""
+        from polly import skills as sk
+        monkeypatch.setattr(sk, "_USER_SKILLS_DIR", tmp_path)
+        # Write a minimal skill
+        skill_file = tmp_path / "mything.py"
+        skill_file.write_text(
+            'SKILL = {"name": "mything", "description_en": "test", "description_pt": "teste", "platforms": []}\n'
+            'def run(task, ctx): return ["echo " + task]\n'
+        )
+        sk._REGISTRY.clear()
+        sk._load_all()
+        mod = sk.get_skill("mything")
+        assert mod is not None
+        assert mod.run("hello", {}) == ["echo hello"]
+
+    def test_template_has_correct_interface(self):
+        """The template file defines SKILL dict and run() callable."""
+        from polly.skills import SKILL_TEMPLATE
+        assert hasattr(SKILL_TEMPLATE, "SKILL")
+        assert "name" in SKILL_TEMPLATE.SKILL
+        assert "description_en" in SKILL_TEMPLATE.SKILL
+        assert "description_pt" in SKILL_TEMPLATE.SKILL
+        assert callable(SKILL_TEMPLATE.run)
 
 
 class TestConfigEdit:

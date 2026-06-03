@@ -119,6 +119,13 @@ def create_parser() -> argparse.ArgumentParser:
         help="Run in agent mode: plan and execute multi-step tasks with tools"
     )
     mode_group.add_argument(
+        "--see",
+        metavar="IMAGE",
+        nargs="?",
+        const="__screenshot__",
+        help="Describe or reason about an image (omit path to capture screen)"
+    )
+    mode_group.add_argument(
         "-X", "--execute",
         action="store_true",
         help="Generate a command and execute it (with safety confirmation)"

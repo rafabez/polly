@@ -10,7 +10,7 @@ from .help_formatter import print_help
 from .api import PollinationsAPI
 from .config import get_config, fetch_text_models, fetch_health_stats
 from .prompts import get_prompt, get_available_modes
-from . import memory, cache, system_context, executor, config_edit, agent, rollback
+from . import memory, cache, system_context, executor, config_edit, agent, rollback, vision
 from .utils import (
     print_response, print_error, print_info, print_success, print_warning,
     print_code, read_stdin, read_file,
@@ -770,6 +770,28 @@ def main():
     # Initialize API (with direct API flag if specified)
     use_direct_api = getattr(args, 'direct_api', False)
     api = PollinationsAPI(use_direct_api=use_direct_api)
+
+    # Handle --see [IMAGE] — vision mode
+    if getattr(args, "see", None) is not None:
+        prompt = " ".join(args.prompt) if args.prompt else ""
+        if not prompt:
+            print_error(get_text("vision.no_prompt"))
+            sys.exit(1)
+        image_path = args.see
+        if image_path == "__screenshot__":
+            print_info(get_text("vision.capturing"))
+            tmp = vision.capture_screenshot()
+            if tmp is None:
+                print_error(get_text("vision.capture_failed"))
+                sys.exit(1)
+            image_path = str(tmp)
+        try:
+            result = vision.query_with_image(api, image_path, prompt)
+            print_response(result, format_markdown=not getattr(args, "no_markdown", False))
+        except Exception as e:
+            print_error(str(e))
+            sys.exit(1)
+        return
 
     # Handle --agent / -A
     if getattr(args, "agent", False):
