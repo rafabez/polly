@@ -10,7 +10,7 @@ from .help_formatter import print_help
 from .api import PollinationsAPI
 from .config import get_config, fetch_text_models
 from .prompts import get_prompt, get_available_modes
-from . import memory
+from . import memory, cache
 from .utils import (
     print_response, print_error, print_info, print_success, print_warning,
     print_code, read_stdin, read_file,
@@ -439,6 +439,28 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
     # Streaming to a pipe hangs because nothing flushes the buffer on Windows.
     effective_stream = args.stream and sys.stdout.isatty()
 
+    # Response cache: check before calling the API.
+    # Only applies when temperature <= cache_max_temperature (creative queries skip).
+    use_cache = (
+        cache.is_enabled(args)
+        and not effective_stream
+        and temperature <= config.get("cache_max_temperature", 0.0)
+        and mode != "motivational"
+    )
+    cache_key = None
+    if use_cache:
+        cache_key = cache._cache_key(model, mode, temperature, system_prompt, user_prompt)
+        cached = cache.get(cache_key, ttl_minutes=int(config.get("cache_ttl_minutes", 60)))
+        if cached is not None:
+            if mode == "command":
+                print_code(cached.strip(), language="bash")
+            else:
+                print_response(cached, format_markdown=not args.no_markdown)
+            if use_memory and cached.strip():
+                memory.save_turn(content, cached)
+                memory.append_history(model, mode, content, cached)
+            return
+
     try:
         if effective_stream:
             response = api.chat_completion(
@@ -479,6 +501,10 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
         if use_memory and result and result.strip():
             memory.save_turn(content, result)
             memory.append_history(model, mode, content, result)
+
+        # Write to response cache if enabled
+        if use_cache and cache_key and result and result.strip():
+            cache.put(cache_key, result)
 
         # Save to file if requested
         if args.output:

@@ -53,6 +53,48 @@ def test_translate_prompt():
     assert "Hello" in user
 
 
+def test_cache_put_get_roundtrip(tmp_path, monkeypatch):
+    """Cache put then get returns the same response within TTL."""
+    from polly import cache
+    monkeypatch.setattr(cache, "_cache_dir", lambda: tmp_path / "cache")
+    key = cache._cache_key("mistral", "default", 0.0, "sys", "user")
+    assert cache.get(key, ttl_minutes=60) is None  # cold
+    cache.put(key, "hello world")
+    assert cache.get(key, ttl_minutes=60) == "hello world"
+
+
+def test_cache_ttl_expiry(tmp_path, monkeypatch):
+    """Cached entry older than TTL is treated as a miss."""
+    from polly import cache
+    import time as _time
+    monkeypatch.setattr(cache, "_cache_dir", lambda: tmp_path / "cache")
+    key = cache._cache_key("openai", "default", 0.0, "s", "u")
+    cache.put(key, "stale")
+    # Back-date the file's ts
+    p = (tmp_path / "cache" / f"{key}.json")
+    import json as _json
+    data = _json.loads(p.read_text())
+    data["ts"] = _time.time() - 7200  # 2 hours ago
+    p.write_text(_json.dumps(data))
+    assert cache.get(key, ttl_minutes=60) is None
+
+
+def test_cache_key_stability():
+    """Same inputs always produce the same key."""
+    from polly import cache
+    k1 = cache._cache_key("mistral", "default", 0.0, "sys", "prompt")
+    k2 = cache._cache_key("mistral", "default", 0.0, "sys", "prompt")
+    assert k1 == k2
+
+
+def test_cache_key_different_temp():
+    """Different temperatures produce different keys."""
+    from polly import cache
+    k1 = cache._cache_key("mistral", "default", 0.0, "sys", "prompt")
+    k2 = cache._cache_key("mistral", "default", 0.7, "sys", "prompt")
+    assert k1 != k2
+
+
 def test_stream_disabled_when_not_tty(monkeypatch):
     """When stdout is not a TTY, effective_stream must be False even if args.stream=True."""
     import sys

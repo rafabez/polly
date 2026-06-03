@@ -152,6 +152,16 @@ def create_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Don't use or update conversation memory for this query"
     )
+    params_group.add_argument(
+        "--cache",
+        action="store_true",
+        help="Enable response cache for this query (ignores response_cache_enabled)"
+    )
+    params_group.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="Disable response cache for this query"
+    )
 
     # Output options
     output_group = parser.add_argument_group("output")

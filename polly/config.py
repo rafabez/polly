@@ -114,6 +114,10 @@ DEFAULT_CONFIG = {
     # Retry config for transient upstream errors (429/502/503/timeout)
     "retry_max_attempts": 3,
     "retry_base_delay": 1.0,
+    # Response cache (opt-in; only applied when temperature <= cache_max_temperature)
+    "response_cache_enabled": False,
+    "cache_ttl_minutes": 60,
+    "cache_max_temperature": 0.0,
 }
 
 # Backend URL (hardcoded - not user-configurable)
