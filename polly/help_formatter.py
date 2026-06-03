@@ -112,6 +112,10 @@ def print_help():
     info_table.add_row("-lmo, --list-modes", get_text("info.list_modes"))
     info_table.add_row("--context", get_text("info.context"))
     info_table.add_row("--forget", get_text("info.forget"))
+    info_table.add_row("--update", get_text("info.update"))
+    info_table.add_row("--history", get_text("info.history"))
+    info_table.add_row("--history-clear", get_text("info.history_clear"))
+    info_table.add_row("--purge", get_text("info.purge"))
     info_table.add_row("-v, --version", get_text("info.version"))
     info_table.add_row("-h, --help", get_text("info.help"))
 

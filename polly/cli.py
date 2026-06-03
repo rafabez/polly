@@ -257,6 +257,26 @@ def create_parser() -> argparse.ArgumentParser:
         help="Clear the conversation memory for this terminal"
     )
     info_group.add_argument(
+        "--update",
+        action="store_true",
+        help="Update Polly to the latest version from GitHub"
+    )
+    info_group.add_argument(
+        "--history",
+        action="store_true",
+        help="Print recent conversation history"
+    )
+    info_group.add_argument(
+        "--history-clear",
+        action="store_true",
+        help="Clear the conversation history log"
+    )
+    info_group.add_argument(
+        "--purge",
+        action="store_true",
+        help="Wipe ALL local Polly state (memory, history, caches)"
+    )
+    info_group.add_argument(
         "-lm", "--list-models",
         action="store_true",
         help="List available AI models"
@@ -348,7 +368,11 @@ def validate_args(args) -> Optional[str]:
         args.list_profiles or
         args.delete_profile or
         args.context or
-        args.forget
+        args.forget or
+        args.history or
+        args.history_clear or
+        args.purge or
+        args.update
     )
 
     if needs_prompt and not args.prompt and not args.explain:

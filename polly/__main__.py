@@ -69,6 +69,57 @@ def handle_config_commands(args):
             print_info(get_text("msg.memory_empty"))
         return True
 
+    if args.update:
+        import subprocess
+        import shutil
+        repo = "git+https://github.com/rafabez/polly.git"
+        manual_cmd = f"pip install --upgrade {repo}"
+        print_info(get_text("msg.updating"))
+        if shutil.which("pipx"):
+            cmd = ["pipx", "install", repo, "--force"]
+        else:
+            print_info(get_text("msg.update_no_pipx", cmd=manual_cmd))
+            return True
+        try:
+            result = subprocess.run(cmd, check=True)
+            if result.returncode == 0:
+                print_success(get_text("msg.update_done"))
+            else:
+                print_error(get_text("msg.update_failed"))
+        except Exception as e:
+            print_error(f"{get_text('msg.update_failed')} ({e})")
+        return True
+
+    if args.history:
+        hist = memory.read_history()
+        if hist:
+            print(hist)
+        else:
+            print_info(get_text("msg.history_empty"))
+        return True
+
+    if args.history_clear:
+        if memory.clear_history():
+            print_success(get_text("msg.history_cleared"))
+        else:
+            print_info(get_text("msg.history_empty"))
+        return True
+
+    if args.purge:
+        try:
+            answer = input(get_text("msg.purge_confirm")).strip().lower()
+        except KeyboardInterrupt:
+            print()
+            print_info(get_text("msg.purge_aborted"))
+            return True
+        if answer == "yes":
+            result = memory.purge_all()
+            summary = f"sessions={result['sessions']}, caches={result['cache_files']}, other={result['other']}"
+            print_success(get_text("msg.purge_done", summary=summary))
+        else:
+            print_info(get_text("msg.purge_aborted"))
+        return True
+
     if args.set_default_model is not None:
         # Interactive mode - show model selection menu
         if args.set_default_model == "__interactive__":
@@ -498,7 +549,11 @@ def main():
         args.list_profiles or
         args.delete_profile or
         args.context or
-        args.forget
+        args.forget or
+        args.history or
+        args.history_clear or
+        args.purge or
+        args.update
     )
 
     if config.is_first_run and not is_config_command:

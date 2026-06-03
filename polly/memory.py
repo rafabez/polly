@@ -209,6 +209,80 @@ def history_path_str() -> str:
     return str(_history_path())
 
 
+def read_history(limit_lines: int = 200) -> str:
+    """Return the last `limit_lines` lines of history.log, or '' if empty."""
+    path = _history_path()
+    if not path.exists():
+        return ""
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+        return "\n".join(lines[-limit_lines:])
+    except Exception:
+        return ""
+
+
+def clear_history() -> bool:
+    """Truncate history.log. Returns True if file existed."""
+    path = _history_path()
+    try:
+        if path.exists():
+            path.write_text("", encoding="utf-8")
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def purge_all() -> dict:
+    """
+    Delete all local Polly state: sessions, history, caches.
+    Does NOT touch config.yaml.
+    Returns a summary dict with counts of items removed.
+    """
+    config_dir = _config_dir()
+    summary = {"sessions": 0, "cache_files": 0, "other": 0}
+
+    # Sessions
+    sessions = _sessions_dir()
+    if sessions.exists():
+        for f in sessions.glob("*.json"):
+            try:
+                f.unlink()
+                summary["sessions"] += 1
+            except Exception:
+                pass
+
+    # History log
+    hp = _history_path()
+    if hp.exists():
+        try:
+            hp.unlink()
+            summary["other"] += 1
+        except Exception:
+            pass
+
+    # Cache files (models_cache, health_cache, response cache dir)
+    for name in ("models_cache.json", "health_cache.json"):
+        f = config_dir / name
+        if f.exists():
+            try:
+                f.unlink()
+                summary["cache_files"] += 1
+            except Exception:
+                pass
+
+    cache_dir = config_dir / "cache"
+    if cache_dir.exists():
+        for f in cache_dir.glob("*.json"):
+            try:
+                f.unlink()
+                summary["cache_files"] += 1
+            except Exception:
+                pass
+
+    return summary
+
+
 def cleanup_old_sessions() -> None:
     """Remove session files older than the TTL. Cheap housekeeping on save."""
     ttl = _ttl_seconds()
