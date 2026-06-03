@@ -114,6 +114,11 @@ DEFAULT_CONFIG = {
     # Retry config for transient upstream errors (429/502/503/timeout)
     "retry_max_attempts": 3,
     "retry_base_delay": 1.0,
+    # Safety + execution
+    "safety_allowlist": [],    # regex patterns forced to SAFE
+    "safety_denylist": [],     # regex patterns forced to BLOCKED (wins over allowlist)
+    "execute_enabled": True,   # master switch for -X / --execute
+    "execute_autoconfirm_safe": False,  # auto-confirm SAFE commands without prompting
     # System context (injects OS/shell/pkg info into prompts)
     "system_context_enabled": True,
     "system_context_ttl_hours": 24,

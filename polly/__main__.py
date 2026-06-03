@@ -10,7 +10,7 @@ from .help_formatter import print_help
 from .api import PollinationsAPI
 from .config import get_config, fetch_text_models, fetch_health_stats
 from .prompts import get_prompt, get_available_modes
-from . import memory, cache, system_context
+from . import memory, cache, system_context, executor
 from .utils import (
     print_response, print_error, print_info, print_success, print_warning,
     print_code, read_stdin, read_file,
@@ -546,10 +546,27 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
                     spinner_ctx.__exit__(None, None, None)
 
             # Special formatting for command mode
-            if mode == "command":
+            if mode in ("command", "execute"):
                 print_code(result.strip(), language="bash")
             else:
                 print_response(result, format_markdown=not args.no_markdown)
+
+            # Execute-with-confirmation: -X flag or mode == "execute"
+            should_execute = (
+                getattr(args, "execute", False)
+                and config.get("execute_enabled", True)
+                and mode in ("command", "execute")
+            )
+            if should_execute:
+                dry = getattr(args, "dry_run", False)
+                # Extract individual commands from result (split on newlines, strip blanks)
+                cmds = [c.strip() for c in result.strip().splitlines() if c.strip() and not c.startswith("#")]
+                if len(cmds) > 1:
+                    cmd_to_run = executor.pick_command(cmds)
+                else:
+                    cmd_to_run = cmds[0] if cmds else result.strip()
+                if cmd_to_run:
+                    executor.execute(cmd_to_run, dry_run=dry)
 
         # Persist this exchange to memory + history log
         if use_memory and result and result.strip():

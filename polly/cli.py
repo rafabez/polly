@@ -114,6 +114,16 @@ def create_parser() -> argparse.ArgumentParser:
         help="Translate file content to specified language"
     )
     mode_group.add_argument(
+        "-X", "--execute",
+        action="store_true",
+        help="Generate a command and execute it (with safety confirmation)"
+    )
+    mode_group.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show the command that would be executed without running it"
+    )
+    mode_group.add_argument(
         "-i", "--interactive",
         action="store_true",
         help="Start interactive chat mode"
@@ -418,6 +428,8 @@ def get_mode_from_args(args) -> str:
     """Determine which mode is active from arguments"""
     if args.explain:
         return "explain"
+    elif getattr(args, "execute", False):
+        return "execute"
     elif args.command:
         return "command"
     elif args.command_explain:

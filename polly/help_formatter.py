@@ -45,6 +45,8 @@ def print_help():
     modes_table.add_row("-r, --refactor [FILE]", get_text("mode.refactor"))
     modes_table.add_row("-t, --translate LANG", get_text("mode.translate"))
     modes_table.add_row("-tf LANG FILE", get_text("mode.translate_file"))
+    modes_table.add_row("-X, --execute", get_text("info.execute"))
+    modes_table.add_row("--dry-run", get_text("info.dry_run"))
     modes_table.add_row("-i, --interactive", get_text("mode.interactive"))
     modes_table.add_row("-x, --motivational", get_text("mode.motivational"))
 
