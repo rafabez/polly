@@ -373,15 +373,17 @@ def handle_standard_query(api: PollinationsAPI, args, content: str, mode: str):
         and not getattr(args, "no_memory", False)
         and mode != "motivational"
     )
+    # History is already bounded on save (turns + chars). The current user_prompt
+    # is the user's actual request (may include a whole file via -e/-d) and must
+    # NEVER be truncated/dropped — so we only cap the injected history, never the
+    # current prompt.
     history = memory.load_context() if use_memory else []
+    if history:
+        history = truncate_context(history, max_chars=config.get("memory_max_chars", 6000))
 
-    # Prepare messages for chat completion: system + prior turns + new user prompt
     messages = [{"role": "system", "content": system_prompt}]
     messages += history
     messages.append({"role": "user", "content": user_prompt})
-
-    if use_memory:
-        messages = truncate_context(messages, max_chars=config.get("memory_max_chars", 6000))
 
     try:
         if args.stream:

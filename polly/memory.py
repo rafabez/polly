@@ -13,6 +13,7 @@ Two separate stores:
 """
 
 import os
+import sys
 import json
 import time
 import hashlib
@@ -37,20 +38,42 @@ def _history_path() -> Path:
     return _config_dir() / "history.log"
 
 
+def _windows_console_id() -> str:
+    """
+    Stable identifier for the current Windows console window. The console window
+    handle (HWND) is shared by every process attached to that terminal and is the
+    same across separate `polly` invocations in the same window — crucially, it
+    survives the pipx launcher's intermediate process (unlike getppid, which
+    returns a fresh PID each run). Returns "" if unavailable.
+    """
+    try:
+        import ctypes
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+        return f"console-{hwnd}" if hwnd else ""
+    except Exception:
+        return ""
+
+
 def _session_key() -> str:
     """
     Identify the current terminal session. Cascade (first that exists wins):
-      1. WT_SESSION      - Windows Terminal (unique GUID per tab)
-      2. TERM_SESSION_ID - macOS Terminal / iTerm
-      3. tty name        - Linux/Mac
-      4. parent PID      - the shell that launched polly
-      5. "global"        - no terminal (e.g. pure pipe)
+      1. Windows console HWND - stable per terminal window, survives pipx launcher
+      2. WT_SESSION           - Windows Terminal (unique GUID per tab)
+      3. TERM_SESSION_ID      - macOS Terminal / iTerm
+      4. tty name             - Linux/Mac
+      5. parent PID           - the shell that launched polly
+      6. "global"             - no terminal (e.g. pure pipe)
     The raw key is hashed to a short, filesystem-safe name.
     """
-    raw = (
-        os.environ.get("WT_SESSION")
-        or os.environ.get("TERM_SESSION_ID")
-    )
+    raw = None
+    if sys.platform == "win32":
+        raw = _windows_console_id() or None
+
+    if not raw:
+        raw = (
+            os.environ.get("WT_SESSION")
+            or os.environ.get("TERM_SESSION_ID")
+        )
     if not raw:
         try:
             raw = os.ttyname(0)

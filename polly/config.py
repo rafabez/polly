@@ -123,7 +123,8 @@ MODELS_CACHE_TTL = 86400  # 24 hours
 # Tinybird — real-time model health monitor (same source as model-monitor.pollinations.ai)
 TINYBIRD_URL = "https://api.europe-west2.gcp.tinybird.co/v0/pipes/model_health.json"
 TINYBIRD_TOKEN = "p.eyJ1IjogImFjYTYzZjc5LThjNTYtNDhlNC05NWJjLWEyYmFjMTY0NmJkMyIsICJpZCI6ICI5ZWZmMGM3Ni1kOTZkLTQwYjgtYWQwOC1mNDFlMmRiYjBmYTIiLCAiaG9zdCI6ICJnY3AtZXVyb3BlLXdlc3QyIn0.6VnVkAQ5h_fkcDZVDUoU38dzTxaw0xo3DnmKkhECbA8"
-HEALTH_CACHE_TTL = 300  # 5 minutes — matches the monitor's shortest interval
+HEALTH_WINDOW_MINUTES = 60  # look back 1h for "active" models (wider = more models listed)
+HEALTH_CACHE_TTL = 900  # 15 minutes — list is stable over a 1h window, refresh less often
 
 # Fallback models — used only when gen.pollinations.ai is unreachable
 AVAILABLE_MODELS = {
@@ -140,14 +141,14 @@ AVAILABLE_MODELS = {
 def _fetch_healthy_model_names() -> set:
     """
     Query Tinybird (same source as model-monitor.pollinations.ai) for text models
-    with >=50% success rate in the last 5 minutes. Returns a set of model names.
-    Returns empty set on any failure so callers can fall back gracefully.
+    with >=50% success rate within HEALTH_WINDOW_MINUTES. Returns a set of model
+    names. Returns empty set on any failure so callers can fall back gracefully.
     """
     import requests as _req
     try:
         r = _req.get(
             TINYBIRD_URL,
-            params={"token": TINYBIRD_TOKEN, "minutes": 5},
+            params={"token": TINYBIRD_TOKEN, "minutes": HEALTH_WINDOW_MINUTES},
             timeout=6,
         )
         r.raise_for_status()
