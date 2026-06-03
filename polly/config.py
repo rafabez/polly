@@ -229,6 +229,13 @@ def fetch_text_models(config_dir: Path = None) -> list:
             except Exception:
                 pass
 
+    # --- Keep only usable text chat models (drop audio output, specialized tools) ---
+    def _is_text_chat_model(m):
+        out = m.get("output_modalities", ["text"])
+        return "text" in out and "audio" not in out and not m.get("is_specialized")
+
+    all_models = [m for m in all_models if _is_text_chat_model(m)]
+
     # --- Filter: keep only models active on Tinybird (fall back to all if health unavailable) ---
     if healthy_names:
         filtered = [m for m in all_models if m.get("name") in healthy_names]
