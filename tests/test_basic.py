@@ -53,6 +53,75 @@ def test_translate_prompt():
     assert "Hello" in user
 
 
+class TestRollback:
+    """WU-16: Stateful rollback."""
+
+    def setup_method(self):
+        from polly import rollback as rb
+        self.rb = rb
+
+    def _patch_dirs(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(self.rb, "_TRANSACTIONS_DIR", tmp_path / "transactions")
+        monkeypatch.setattr(self.rb, "_BACKUPS_DIR", tmp_path / "backups")
+        monkeypatch.setattr(self.rb, "_active", None)
+
+    def test_begin_commit_creates_file(self, tmp_path, monkeypatch):
+        self._patch_dirs(tmp_path, monkeypatch)
+        self.rb.begin_transaction("test task")
+        self.rb.record_command_run("ls", 0)
+        tid = self.rb.commit_transaction()
+        assert tid is not None
+        files = list((tmp_path / "transactions").glob("*.json"))
+        assert len(files) == 1
+
+    def test_undo_file_created(self, tmp_path, monkeypatch):
+        self._patch_dirs(tmp_path, monkeypatch)
+        # Create a file, record it, then undo
+        f = tmp_path / "new_file.txt"
+        f.write_text("hello")
+        self.rb.begin_transaction("create file")
+        self.rb.record_file_created(str(f))
+        self.rb.commit_transaction()
+        success, msgs = self.rb.undo_last()
+        assert success
+        assert not f.exists()
+        assert any("deleted" in m for m in msgs)
+
+    def test_undo_file_overwritten(self, tmp_path, monkeypatch):
+        self._patch_dirs(tmp_path, monkeypatch)
+        f = tmp_path / "config.txt"
+        f.write_text("original")
+        self.rb.begin_transaction("edit file")
+        self.rb.record_file_overwritten(str(f), "original")
+        f.write_text("modified")
+        self.rb.commit_transaction()
+        success, msgs = self.rb.undo_last()
+        assert success
+        assert f.read_text() == "original"
+        assert any("restored" in m for m in msgs)
+
+    def test_undo_no_transactions(self, tmp_path, monkeypatch):
+        self._patch_dirs(tmp_path, monkeypatch)
+        success, msgs = self.rb.undo_last()
+        assert not success
+        assert msgs
+
+    def test_command_not_undone(self, tmp_path, monkeypatch):
+        self._patch_dirs(tmp_path, monkeypatch)
+        self.rb.begin_transaction("ran a command")
+        self.rb.record_command_run("rm -rf /tmp/x", 0)
+        self.rb.commit_transaction()
+        success, msgs = self.rb.undo_last()
+        assert any("not undoable" in m.lower() or "cannot" in m.lower() for m in msgs)
+
+    def test_empty_transaction_not_saved(self, tmp_path, monkeypatch):
+        self._patch_dirs(tmp_path, monkeypatch)
+        self.rb.begin_transaction("nothing happened")
+        tid = self.rb.commit_transaction()
+        assert tid is None
+        assert not (tmp_path / "transactions").exists() or not list((tmp_path / "transactions").glob("*.json"))
+
+
 class TestAgent:
     """WU-15: Tool-using agent loop."""
 

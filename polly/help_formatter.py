@@ -123,6 +123,8 @@ def print_help():
     info_table.add_row("--edit FILE", get_text("info.edit"))
     info_table.add_row("--revert FILE", get_text("info.revert"))
     info_table.add_row("--enable-agent", get_text("info.enable_agent"))
+    info_table.add_row("--undo-last", get_text("info.undo_last"))
+    info_table.add_row("--transactions", get_text("info.transactions"))
     info_table.add_row("--update", get_text("info.update"))
     info_table.add_row("--rescan", get_text("info.rescan"))
     info_table.add_row("--show-system", get_text("info.show_system"))

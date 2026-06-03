@@ -323,6 +323,16 @@ def create_parser() -> argparse.ArgumentParser:
         help="Enable agent mode and save to config"
     )
     info_group.add_argument(
+        "--undo-last",
+        action="store_true",
+        help="Undo the last agent task (reverse file changes)"
+    )
+    info_group.add_argument(
+        "--transactions",
+        action="store_true",
+        help="List recent agent transactions"
+    )
+    info_group.add_argument(
         "--update",
         action="store_true",
         help="Update Polly to the latest version from GitHub"
@@ -453,7 +463,9 @@ def validate_args(args) -> Optional[str]:
         args.show_system or
         bool(args.revert) or
         args.list_skills or
-        getattr(args, "enable_agent", False)
+        getattr(args, "enable_agent", False) or
+        getattr(args, "undo_last", False) or
+        getattr(args, "transactions", False)
     )
 
     if needs_prompt and not args.prompt and not args.explain:

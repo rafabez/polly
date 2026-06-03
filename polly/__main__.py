@@ -10,7 +10,7 @@ from .help_formatter import print_help
 from .api import PollinationsAPI
 from .config import get_config, fetch_text_models, fetch_health_stats
 from .prompts import get_prompt, get_available_modes
-from . import memory, cache, system_context, executor, config_edit, agent
+from . import memory, cache, system_context, executor, config_edit, agent, rollback
 from .utils import (
     print_response, print_error, print_info, print_success, print_warning,
     print_code, read_stdin, read_file,
@@ -111,6 +111,28 @@ def handle_config_commands(args):
         config.set("agent_enabled", True)
         config.save_config()
         print_success(get_text("msg.agent_enabled"))
+        return True
+
+    if getattr(args, "undo_last", False):
+        success, msgs = rollback.undo_last()
+        for m in msgs:
+            print(m)
+        if success:
+            print_success(get_text("rollback.done"))
+        else:
+            print_warning(get_text("rollback.partial"))
+        return True
+
+    if getattr(args, "transactions", False):
+        txs = rollback.list_transactions()
+        if not txs:
+            print_info(get_text("rollback.list_empty"))
+        else:
+            print_info(f"{get_text('rollback.list_header')}\n")
+            for tx in txs:
+                import datetime
+                ts = datetime.datetime.fromtimestamp(tx["started_at"]).strftime("%Y-%m-%d %H:%M")
+                print(f"  [{ts}] {tx['description']} ({tx['actions']} actions)")
         return True
 
     if args.list_skills:
@@ -725,7 +747,9 @@ def main():
         getattr(args, "show_system", False) or
         bool(getattr(args, "revert", None)) or
         getattr(args, "list_skills", False) or
-        getattr(args, "enable_agent", False)
+        getattr(args, "enable_agent", False) or
+        getattr(args, "undo_last", False) or
+        getattr(args, "transactions", False)
     )
 
     if config.is_first_run and not is_config_command:

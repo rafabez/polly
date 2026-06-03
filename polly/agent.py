@@ -17,6 +17,7 @@ import json
 from .i18n import get_text
 from .utils import print_info, print_error, print_success, print_warning, print_response
 from .executor import execute
+from . import rollback
 
 # ── Tool definitions (OpenAI function-calling schema) ─────────────────────────
 
@@ -110,16 +111,15 @@ def _run_tool(name: str, args: dict, dry_run: bool) -> str:
         exit_code = execute(cmd, dry_run=dry_run)
         if exit_code is None:
             return "Command was aborted by user."
+        rollback.record_command_run(cmd, exit_code or 0)
         return f"Command exited with code {exit_code}."
 
     elif name == "read_file":
-        from pathlib import Path
         path = args.get("path", "")
         print_info(f"[tool] read_file: {path}")
         try:
             from .utils import read_file as _rf
             content = _rf(path)
-            # Cap to avoid flooding the context
             if len(content) > 4000:
                 content = content[:4000] + "\n…[truncated]"
             return content
@@ -143,6 +143,11 @@ def _run_tool(name: str, args: dict, dry_run: bool) -> str:
         try:
             p = Path(path).expanduser()
             p.parent.mkdir(parents=True, exist_ok=True)
+            # Record for rollback before overwriting
+            if p.exists():
+                rollback.record_file_overwritten(path, p.read_text(encoding="utf-8", errors="replace"))
+            else:
+                rollback.record_file_created(path)
             p.write_text(content, encoding="utf-8")
             return f"Written {len(content)} characters to {path}."
         except Exception as e:
@@ -178,6 +183,8 @@ def run(
     max_steps = int(config.get("agent_max_steps", 8))
     model = config.get("default_model")
     temperature = float(config.get("temperature", 0.7))
+
+    rollback.begin_transaction(goal)
 
     system_msg = (
         "You are Polly, an AI assistant that helps users accomplish tasks on their "
@@ -236,10 +243,13 @@ def run(
         tool_calls = msg.get("tool_calls") or []
 
         if not tool_calls:
-            # Final answer
+            # Final answer — commit transaction so --undo-last can reverse it
+            tid = rollback.commit_transaction()
             content = msg.get("content", "")
             print()
             print_success(get_text("agent.done"))
+            if tid:
+                print_info(get_text("agent.undo_tip"))
             print()
             print_response(content, format_markdown=not no_markdown)
             return
@@ -275,4 +285,5 @@ def run(
             break
 
     # Reached max steps without a final answer
+    rollback.commit_transaction()
     print_warning(get_text("agent.max_steps", n=max_steps))
