@@ -114,6 +114,11 @@ BACKEND_URL = "https://api.interzonesec.com"
 GEN_API_BASE_URL = "https://gen.pollinations.ai"
 MODELS_CACHE_TTL = 86400  # 24 hours
 
+# Tinybird — real-time model health monitor (same source as model-monitor.pollinations.ai)
+TINYBIRD_URL = "https://api.europe-west2.gcp.tinybird.co/v0/pipes/model_health.json"
+TINYBIRD_TOKEN = "p.eyJ1IjogImFjYTYzZjc5LThjNTYtNDhlNC05NWJjLWEyYmFjMTY0NmJkMyIsICJpZCI6ICI5ZWZmMGM3Ni1kOTZkLTQwYjgtYWQwOC1mNDFlMmRiYjBmYTIiLCAiaG9zdCI6ICJnY3AtZXVyb3BlLXdlc3QyIn0.6VnVkAQ5h_fkcDZVDUoU38dzTxaw0xo3DnmKkhECbA8"
+HEALTH_CACHE_TTL = 300  # 5 minutes — matches the monitor's shortest interval
+
 # Fallback models — used only when gen.pollinations.ai is unreachable
 AVAILABLE_MODELS = {
     "openai-large": "GPT-5.4 - Most Powerful & Intelligent",
@@ -126,46 +131,110 @@ AVAILABLE_MODELS = {
 }
 
 
+def _fetch_healthy_model_names() -> set:
+    """
+    Query Tinybird (same source as model-monitor.pollinations.ai) for text models
+    with >=50% success rate in the last 5 minutes. Returns a set of model names.
+    Returns empty set on any failure so callers can fall back gracefully.
+    """
+    import requests as _req
+    try:
+        r = _req.get(
+            TINYBIRD_URL,
+            params={"token": TINYBIRD_TOKEN, "minutes": 5},
+            timeout=6,
+        )
+        r.raise_for_status()
+        rows = r.json().get("data", [])
+        healthy = set()
+        for row in rows:
+            if row.get("event_type") != "generate.text":
+                continue
+            total = row.get("total_requests") or 0
+            ok = row.get("status_2xx") or 0
+            if total > 0 and ok / total >= 0.5:
+                healthy.add(row["model"])
+        return healthy
+    except Exception:
+        return set()
+
+
 def fetch_text_models(config_dir: Path = None) -> list:
     """
-    Fetch text models from gen.pollinations.ai with a 24h file cache.
-    Returns list of dicts: {name, description, aliases, paid_only, reasoning, ...}
-    Falls back to AVAILABLE_MODELS when the API is unreachable.
+    Return text models that are both documented (gen.pollinations.ai) and
+    currently healthy (>=50% success in last 5 min per Tinybird/model-monitor).
+
+    Uses two caches:
+    - models_cache.json     — gen API metadata, 24h TTL
+    - health_cache.json     — Tinybird health data, 5min TTL
+
+    Falls back to full gen API list (without health filter) if Tinybird is
+    unreachable, and to AVAILABLE_MODELS if both fail.
     """
     import requests as _req
 
     if config_dir is None:
         config_dir = Path.home() / ".config" / "polly"
 
-    cache_file = config_dir / "models_cache.json"
+    # --- Load metadata (24h cache) ---
+    meta_cache = config_dir / "models_cache.json"
+    all_models = None
 
-    # Return cached data if still fresh
-    if cache_file.exists():
+    if meta_cache.exists():
         try:
-            with open(cache_file, "r") as f:
+            with open(meta_cache, "r") as f:
                 cache = _json.load(f)
             if time.time() - cache.get("timestamp", 0) < MODELS_CACHE_TTL:
-                return cache["models"]
+                all_models = cache["models"]
         except Exception:
             pass
 
-    # Fetch from gen API
-    try:
-        r = _req.get(f"{GEN_API_BASE_URL}/text/models", timeout=8)
-        r.raise_for_status()
-        models = r.json()
+    if all_models is None:
         try:
-            config_dir.mkdir(parents=True, exist_ok=True)
-            with open(cache_file, "w") as f:
-                _json.dump({"timestamp": time.time(), "models": models}, f)
+            r = _req.get(f"{GEN_API_BASE_URL}/text/models", timeout=8)
+            r.raise_for_status()
+            all_models = r.json()
+            try:
+                config_dir.mkdir(parents=True, exist_ok=True)
+                with open(meta_cache, "w") as f:
+                    _json.dump({"timestamp": time.time(), "models": all_models}, f)
+            except Exception:
+                pass
+        except Exception:
+            all_models = [
+                {"name": k, "description": v, "aliases": [], "paid_only": False}
+                for k, v in AVAILABLE_MODELS.items()
+            ]
+
+    # --- Load health data (5min cache) ---
+    health_cache = config_dir / "health_cache.json"
+    healthy_names = None
+
+    if health_cache.exists():
+        try:
+            with open(health_cache, "r") as f:
+                hc = _json.load(f)
+            if time.time() - hc.get("timestamp", 0) < HEALTH_CACHE_TTL:
+                healthy_names = set(hc["healthy"])
         except Exception:
             pass
-        return models
-    except Exception:
-        return [
-            {"name": k, "description": v, "aliases": [], "paid_only": False}
-            for k, v in AVAILABLE_MODELS.items()
-        ]
+
+    if healthy_names is None:
+        healthy_names = _fetch_healthy_model_names()
+        if healthy_names:
+            try:
+                config_dir.mkdir(parents=True, exist_ok=True)
+                with open(health_cache, "w") as f:
+                    _json.dump({"timestamp": time.time(), "healthy": list(healthy_names)}, f)
+            except Exception:
+                pass
+
+    # --- Filter: keep only models active on Tinybird (fall back to all if health unavailable) ---
+    if healthy_names:
+        filtered = [m for m in all_models if m.get("name") in healthy_names]
+        return filtered if filtered else all_models
+
+    return all_models
 
 # Temperature Presets
 TEMPERATURE_PRESETS = {
