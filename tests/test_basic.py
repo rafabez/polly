@@ -2,11 +2,13 @@
 Basic tests for Polly
 """
 
+import re
 import json
 import time
 import pytest
 from polly.config import get_config, AVAILABLE_MODELS
 from polly.prompts import get_prompt, get_available_modes
+from polly.i18n import TRANSLATIONS
 from polly import memory
 
 
@@ -49,6 +51,29 @@ def test_translate_prompt():
     system, user = get_prompt("translate", "Hello", target_language="Spanish")
     assert "Spanish" in user
     assert "Hello" in user
+
+
+def test_i18n_key_parity():
+    """Every translation key must exist in both English and Portuguese."""
+    en = set(TRANSLATIONS["en"])
+    pt = set(TRANSLATIONS["pt"])
+    only_en = en - pt
+    only_pt = pt - en
+    assert not only_en, f"Keys missing from PT: {sorted(only_en)}"
+    assert not only_pt, f"Keys missing from EN: {sorted(only_pt)}"
+
+
+def test_i18n_placeholder_parity():
+    """A key's {placeholders} must match between EN and PT so .format() never breaks."""
+    en, pt = TRANSLATIONS["en"], TRANSLATIONS["pt"]
+    placeholder = re.compile(r"{(\w+)}")
+    mismatches = {}
+    for key in set(en) & set(pt):
+        en_ph = set(placeholder.findall(str(en[key])))
+        pt_ph = set(placeholder.findall(str(pt[key])))
+        if en_ph != pt_ph:
+            mismatches[key] = {"en": sorted(en_ph), "pt": sorted(pt_ph)}
+    assert not mismatches, f"Placeholder mismatches: {mismatches}"
 
 
 @pytest.fixture
